@@ -14,11 +14,18 @@
 
 1. 安装Python SDK 3.10+, 下载安装地址：[www.python.org/downloads/](https://www.python.org/downloads/)
 
-2. 安装课程必需的Python库，在课程的根目录运行命令： `pip install -r requirements.txt`
+2. 创建和激活Python虚拟环境，请在命令行运行下面的命令：
 
-3. 安装集成开发环境VScode，下载安装地址：[code.visualstudio.com/download](https://code.visualstudio.com/download)
+   ```bash
+   python -m venv venv
+   .\venv\Scripts\activate.bat
+   ```
 
-4. 在VSCode中安装课程需要的插件：
+3. 在激活的Python虚拟环境中安装课程必需的Python库，在课程的根目录运行命令： `pip install -r requirements.txt`
+
+4. 安装集成开发环境VScode，下载安装地址：[code.visualstudio.com/download](https://code.visualstudio.com/download)
+
+5. 在VSCode中安装课程需要的插件：
 
    - Python Extension Pack
    - Jupyter
@@ -32,7 +39,7 @@
    - code spell checker
    - Github copilot
 
-5. 安装和配置版本控制工具git, 下载和安装地址: [https://git-scm.com/downloads](https://git-scm.com/downloads)
+6. 安装和配置版本控制工具git, 下载和安装地址: [https://git-scm.com/downloads](https://git-scm.com/downloads)
 
 git配置方法如下：
 
@@ -46,11 +53,11 @@ git config --global user.email “[valid-email]”
 1. 访问课程仓库主页：[github.com/zhoujing204/data-modeling-course-student](https://github.com/zhoujing204/data-modeling-course-student)
 2. 运行下面的命令克隆课程仓库：
 
-```bash
-git clone https://github.com/zhoujing204/data-modeling-course-student.git
-```
+   ```bash
+   git clone https://github.com/zhoujing204/data-modeling-course-student.git
+   ```
 
-如果没有安装git，也可以直接通过链接下载zip文件：[下载链接](https://github.com/zhoujing204/data-modeling-course-student/archive/refs/heads/master.zip)
+   如果没有安装git，也可以直接通过链接下载zip文件：[下载链接](https://github.com/zhoujing204/data-modeling-course-student/archive/refs/heads/master.zip)
 
 ## 实验代码的管理
 
@@ -59,22 +66,22 @@ git clone https://github.com/zhoujing204/data-modeling-course-student.git
 1. 注册Github账号，地址：[github.com/signup](https://github.com/signup)，也可以码云来作为远程仓库：[gitee.com](https://gitee.com/)
 2. 在编写完成一段代码后，使用下面的命令（需要安装配置好git）保存到本地仓库（注意本地仓库的代码会被还原卡还原，不安全）:
 
-```bash
-git add .
-git commit -m "编写文字描述你完成的代码"
-```
+   ```bash
+   git add .
+   git commit -m "编写文字描述你完成的代码"
+   ```
 
-使用下面的命令本地仓库恢复你保存的代码:
+   使用下面的命令本地仓库恢复你保存的代码:
 
-```bash
-git checkout filename
-```
+   ```bash
+   git checkout filename
+   ```
 
 3. 在VSCode集成开发环境中登录你的Github账号，运行下面的命令将本地仓库同步到远程仓库:
 
-```bash
-git push
-```
+   ```bash
+   git push
+   ```
 
 4. 使用下面的命令可以从远程仓库下载和更新代码到本地仓库：
 
@@ -92,15 +99,15 @@ git pull
 
 1. 在线课程
 
-- Python课程：[课程主页](https://www.coursera.org/programs/sobma/specializations/python)
-- 统计学课程：[课程主页](https://www.coursera.org/programs/sobma/specializations/statistics-with-python?authProvider=bancolombia&source=search)
-- 数据科学课程：[课程主页](https://www.coursera.org/specializations/data-science-python)
-- Git课程：[课程主页](https://www.coursera.org/programs/sobma/learn/introduction-git-github)
-- 线性规划课程：[课程主页](https://www.coursera.org/programs/sobma/learn/linear-programming-and-approximation-algorithms)
+   - Python课程：[课程主页](https://www.coursera.org/programs/sobma/specializations/python)
+   - 统计学课程：[课程主页](https://www.coursera.org/programs/sobma/specializations/statistics-with-python?authProvider=bancolombia&source=search)
+   - 数据科学课程：[课程主页](https://www.coursera.org/specializations/data-science-python)
+   - Git课程：[课程主页](https://www.coursera.org/programs/sobma/learn/introduction-git-github)
+   - 线性规划课程：[课程主页](https://www.coursera.org/programs/sobma/learn/linear-programming-and-approximation-algorithms)
 
 2. 参考书籍
 
-- Python编程：从入门到实践（第3版） -- [美] 埃里克 • 马瑟斯（Eric Matthes）
-- 流畅的 Python（第2版） -- [巴西] 卢西亚诺 • 拉马略
-- Practical Statistics for Data Scientists 50+ Essential Concepts Using R and Python
-- Python for Data Analysis
+   - Python编程：从入门到实践（第3版） -- [美] 埃里克 • 马瑟斯（Eric Matthes）
+   - 流畅的 Python（第2版） -- [巴西] 卢西亚诺 • 拉马略
+   - Practical Statistics for Data Scientists 50+ Essential Concepts Using R and Python
+   - Python for Data Analysis(第2版)
