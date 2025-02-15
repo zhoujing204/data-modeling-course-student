@@ -1,3 +1,13 @@
+---
+output:
+  pdf_document:
+    latex_engine: xelatex
+title: "Your Document Title"
+header-includes:
+  - \usepackage{fontspec}
+  - \setmainfont[Path=C:/WINDOWS/Fonts/]{simsun.ttc}
+---
+
 # 数据建模课程资料
 
 ## 课程介绍
