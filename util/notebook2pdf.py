@@ -1,10 +1,11 @@
-from nbconvert import HTMLExporter
-import nbformat
-import pdfkit
+import os
 
 import nbformat
-from traitlets.config import Config
+import pdfkit
+from nbconvert import HTMLExporter
 from nbconvert.exporters.webpdf import WebPDFExporter
+from traitlets.config import Config
+
 
 def convert_notebook_to_webpdf(notebook_path, output_pdf):
     # Read the .ipynb file
@@ -70,16 +71,13 @@ def html_to_pdf(html_path, output_path):
         pdfkit.from_file(html_path, output_path, options=options)
         print(f"Successfully converted {html_path} to {output_path}")
 
+        # Delete the temporary HTML file after conversion
+        if os.path.exists(html_path):
+            os.remove(html_path)
+            print(f"Deleted temporary file: {html_path}")
+
     except OSError as os_error:
         print(f"Error: Ensure wkhtmltopdf is installed and accessible. Details: {str(os_error)}")
 
     except Exception as e:
         print(f"Error converting file: {str(e)}")
-
-# Example usage
-# notebook_file = "notebook.ipynb"
-# html_file = "notebook.html"
-# pdf_file = "output.pdf"
-
-# notebook_to_html(notebook_file, html_file)
-# html_to_pdf(html_file, pdf_file)

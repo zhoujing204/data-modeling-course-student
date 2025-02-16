@@ -1,4 +1,5 @@
 import json
+
 from bs4 import BeautifulSoup
 
 
@@ -6,9 +7,10 @@ def extract_info(html_content):
     # print('html_contents:', html_content)
     soup = BeautifulSoup(html_content, 'html.parser')
     target_fields = {
+        '班级': 'class_id',
         '学号': 'student_id',
         '姓名': 'name',
-        '电子邮件': 'email'
+        'Email': 'email'
     }
 
     result = {}
