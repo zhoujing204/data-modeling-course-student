@@ -2,6 +2,31 @@ from nbconvert import HTMLExporter
 import nbformat
 import pdfkit
 
+import nbformat
+from traitlets.config import Config
+from nbconvert.exporters.webpdf import WebPDFExporter
+
+def convert_notebook_to_webpdf(notebook_path, output_pdf):
+    # Read the .ipynb file
+    with open(notebook_path, "r", encoding="utf-8") as f:
+        nb = nbformat.read(f, as_version=4)
+
+    # Create a configuration that allows Chromium to be downloaded if needed.
+    c = Config()
+    c.WebPDFExporter.allow_chromium_download = True
+
+    # Create the exporter using the configuration.
+    exporter = WebPDFExporter(config=c)
+
+    # Convert the notebook to a WebPDF
+    pdf_data, resources = exporter.from_notebook_node(nb)
+
+    # Write the PDF data to an output file.
+    with open(output_pdf, "wb") as f:
+        f.write(pdf_data)
+
+    print("Conversion complete:", output_pdf)
+
 def notebook_to_html(notebook_path, html_path):
     try:
         # Load the notebook
