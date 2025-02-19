@@ -163,5 +163,7 @@ def grade_all_tests():
         except Exception as e:
             print("测试过程中出现其它异常:", e)
     print(colored(f"恭喜你{sum(test_results.values())}/{len(test_results)} 个测试", "green"))
-    print(colored(f"你的代码自动评分成绩(百分制)是:{sum(test_results.values()) / len(test_results) * 100}",
+    stu_grade = round(sum(test_results.values()) / len(test_results) * 100)
+    print(colored(f"你的代码自动评分成绩(百分制)是:{stu_grade}",
                   "green"))
+    return stu_grade
