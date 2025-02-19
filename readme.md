@@ -94,14 +94,14 @@ git pull
 方法一：
 
 1. 完成Jupyter Notebook文件（.ipynb文件）中的习题并保存。
-2. 将ipynb文件上传到网站转换为pdf文件: [www.vertopal.com/en/convert/ipynb-to-pdf](https://www.vertopal.com/en/convert/ipynb-to-pdf)
-3. 将转换的pdf文件提交到对应的班级和实验的腾讯文档收集表。
+2. 直接利用课程提供的脚本自动生成实验报告pdf文件。
+3. 将实验报告pdf文件提交到对应的班级和实验的腾讯文档收集表。
 
 方法二：
 
 1. 完成Jupyter Notebook文件（.ipynb文件）中的习题并保存。
-2. 直接利用课程提供的脚本自动生成实验报告pdf文件。
-3. 将实验报告pdf文件提交到对应的班级和实验的腾讯文档收集表。
+2. 将ipynb文件上传到网站转换为pdf文件: [www.vertopal.com/en/convert/ipynb-to-pdf](https://www.vertopal.com/en/convert/ipynb-to-pdf)
+3. 将转换的pdf文件提交到对应的班级和实验的腾讯文档收集表。
 
 ## 参考资料
 
