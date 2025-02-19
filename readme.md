@@ -1,18 +1,8 @@
----
-output:
-  pdf_document:
-    latex_engine: xelatex
-title: "Your Document Title"
-header-includes:
-  - \usepackage{fontspec}
-  - \setmainfont[Path=C:/WINDOWS/Fonts/]{simsun.ttc}
----
-
 # 数据建模课程资料
 
 ## 课程介绍
 
-面向大一学生的基础课程
+数据建模课程是计算机科学与工程学院开设的一门面向大一学生的基础课程，课程实验内容涵盖Python编程入门、线性规划及统计学基础，结合Jupyter Notebook进行实验。课程实验指导开发环境安装、代码管理、实验报告生成及工具使用，提供丰富的在线课程与书籍进行参考，助力学生掌握数据分析与建模技能。
 
 ## 课程实验内容
 
