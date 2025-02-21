@@ -14,14 +14,9 @@
 
 1. 安装Python SDK 3.10+, 下载安装地址：[www.python.org/downloads/](https://www.python.org/downloads/)
 
-2. 创建和激活Python虚拟环境，请在命令行运行下面的命令：
+2. 下载和安装Python虚拟环境Anaconda：[下载链接](https://repo.anaconda.com/archive/Anaconda3-2024.10-1-Windows-x86_64.exe)
 
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\activate.bat
-   ```
-
-3. 在激活的Python虚拟环境中安装课程必需的Python库，在课程的根目录运行命令： `pip install -r requirements.txt`
+3. 运行“Anaconda Prompt”命令行, 切换到课程的根目录,运行命令： `pip install -r requirements.txt`
 
 4. 安装集成开发环境VScode，下载安装地址：[code.visualstudio.com/download](https://code.visualstudio.com/download)
 
