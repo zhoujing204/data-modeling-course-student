@@ -43,6 +43,8 @@ git config --global user.name “[firstname lastname]”
 git config --global user.email “[valid-email]”
 ```
 
+7. 为了能够自动生成实验报告的pdf文件还需要安装两个辅助软件：wkhtmltopdf[下载地址](https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox-0.12.6-1.msvc2015-win64.exe) 和 pandoc[下载地址](https://github.com/jgm/pandoc/releases/download/3.6.3/pandoc-3.6.3-windows-x86_64.msi)
+
 ## 课程材料的下载
 
 1. 访问课程仓库主页：[github.com/zhoujing204/data-modeling-course-student](https://github.com/zhoujing204/data-modeling-course-student)
