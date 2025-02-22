@@ -50,11 +50,11 @@ git config --global user.email “[valid-email]”
 1. 访问课程仓库主页：[github.com/zhoujing204/data-modeling-course-student](https://github.com/zhoujing204/data-modeling-course-student)
 2. 运行下面的命令克隆课程仓库：
 
-   ```bash
-   git clone https://github.com/zhoujing204/data-modeling-course-student.git
-   ```
+```bash
+git clone https://github.com/zhoujing204/data-modeling-course-student.git
+```
 
-   如果没有安装git，也可以直接通过链接下载zip文件：[下载链接](https://github.com/zhoujing204/data-modeling-course-student/archive/refs/heads/master.zip)
+如果没有安装git，也可以直接通过链接下载zip文件：[下载链接](https://github.com/zhoujing204/data-modeling-course-student/archive/refs/heads/master.zip)
 
 ## 实验代码的管理
 
