@@ -14,14 +14,9 @@
 
 1. 安装Python SDK 3.10+, 下载安装地址：[www.python.org/downloads/](https://www.python.org/downloads/)
 
-2. 创建和激活Python虚拟环境，请在命令行运行下面的命令：
+2. 下载和安装Python虚拟环境Anaconda：[下载链接](https://repo.anaconda.com/archive/Anaconda3-2024.10-1-Windows-x86_64.exe)
 
-   ```bash
-   python -m venv venv
-   .\venv\Scripts\activate.bat
-   ```
-
-3. 在激活的Python虚拟环境中安装课程必需的Python库，在课程的根目录运行命令： `pip install -r requirements.txt`
+3. 运行“Anaconda Prompt”命令行, 切换到课程的根目录,运行命令： `pip install -r requirements.txt`
 
 4. 安装集成开发环境VScode，下载安装地址：[code.visualstudio.com/download](https://code.visualstudio.com/download)
 
@@ -95,13 +90,13 @@ git pull
 
 1. 完成Jupyter Notebook文件（.ipynb文件）中的习题并保存。
 2. 直接利用课程提供的脚本自动生成实验报告pdf文件。
-3. 将实验报告pdf文件提交到对应的班级和实验的腾讯文档收集表。
+3. 将实验报告pdf文件提交到对应的班级和实验的腾讯文档收集表:[文档汇总地址](https://docs.qq.com/doc/DWUxJanVwYXFpZmF2)
 
 方法二：
 
 1. 完成Jupyter Notebook文件（.ipynb文件）中的习题并保存。
 2. 将ipynb文件上传到网站转换为pdf文件: [www.vertopal.com/en/convert/ipynb-to-pdf](https://www.vertopal.com/en/convert/ipynb-to-pdf)
-3. 将转换的pdf文件提交到 [实验报告提交汇总表](https://docs.qq.com/doc/DWUxJanVwYXFpZmF2) 中对应的班级和实验的腾讯文档收集表。
+3. 将转换的pdf文件提交到对应的班级和实验的腾讯文档收集表:[文档汇总地址](https://docs.qq.com/doc/DWUxJanVwYXFpZmF2)
 
 ## 参考资料
 

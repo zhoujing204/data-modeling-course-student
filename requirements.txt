@@ -17,12 +17,12 @@ pdfkit
 requests
 httpx
 
-jupyter==1.0.0
-notebook==7.0.2
-ipykernel==6.13.0
-jupyterlab==4.0.5
-ipywidgets==8.1.1
-matplotlib-inline==0.1.3
+jupyter
+notebook
+ipykernel
+jupyterlab
+ipywidgets
+matplotlib-inline
 nbconvert
 nbconvert[webpdf]
 nbformat
