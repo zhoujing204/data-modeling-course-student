@@ -98,7 +98,7 @@ def test_get_third_side_180_degrees(target, msg6):
 def test_get_third_side_60_degrees(target, msg6):
     # 当夹角为60度(π/3弧度)时的特殊情况
     # 等边三角形的情况
-    result = target(2, 2, math.pi/3), msg6
+    result = target(2, 2, math.pi/3)
     assert result == pytest.approx(2.0), msg6
 
 def test_get_third_side_arbitrary(target, msg6):
