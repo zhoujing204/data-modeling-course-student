@@ -272,5 +272,5 @@ def grade_all_tests():
     print(colored(f"恭喜你{sum(test_results.values())}/{len(test_results)} 个测试", "green"))
     stu_grade = round(sum(test_results.values()) / len(test_results) * 100)
     print(colored(f"你的代码自动评分成绩(百分制)是:{stu_grade}",
-                  "green"))
+                "green"))
     return stu_grade
