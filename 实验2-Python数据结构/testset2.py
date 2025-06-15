@@ -51,12 +51,12 @@ def test_get_ticket_price(target):
     """测试习题六"""
     test_name="习题六：test_get_ticket_price"
     test_ids["test_get_ticket_price"] = 0
-    assert target(100, 5) ==  (0, 0), "第七题答案不正确，请检查你的答案"
-    assert target(100, 6) ==  (15, .5),  "第七题答案不正确，请检查你的答案"
-    assert target(100, 14) == (15, .5), "第七题答案不正确，请检查你的答案"
-    assert target(100, 15) == (30, 1), "第七题答案不正确，请检查你的答案"
-    assert target(100, 59) == (30, 1), "第七题答案不正确，请检查你的答案"
-    assert target(100, 60) == (21, .7), "第七题答案不正确，请检查你的答案"
+    assert target(100, 5) ==  (0, 0), "第6题答案不正确，请检查你的答案"
+    assert target(100, 6) ==  (15, .5),  "第6题答案不正确，请检查你的答案"
+    assert target(100, 14) == (15, .5), "第6题答案不正确，请检查你的答案"
+    assert target(100, 15) == (30, 1), "第6题答案不正确，请检查你的答案"
+    assert target(100, 59) == (30, 1), "第6题答案不正确，请检查你的答案"
+    assert target(100, 60) == (21, .7), "第6题答案不正确，请检查你的答案"
     test_ids["test_get_ticket_price"] = 1
     print(colored(f"恭喜你通过了{test_name}测试。{sum(test_ids.values())}/{len(test_ids)} ", "green"))
 
