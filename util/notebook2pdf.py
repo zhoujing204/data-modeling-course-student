@@ -1,5 +1,4 @@
 import os
-
 import nbformat
 import pdfkit
 from nbconvert import HTMLExporter
@@ -80,7 +79,7 @@ def html_to_pdf(html_path, output_path):
         pbar.close()
 
         if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-            print(f"Successfully converted {html_path} to {output_path}")
+            print(f"成功生成报告文件: {output_path}")
         else:
             print(f"Error or timeout converting {html_path} to PDF")
 
@@ -89,80 +88,52 @@ def html_to_pdf(html_path, output_path):
 
 
 
-# def convert_notebook_to_webpdf(notebook_path, output_pdf):
-#     # Read the .ipynb file
-#     with open(notebook_path, "r", encoding="utf-8") as f:
-#         nb = nbformat.read(f, as_version=4)
+def convert_notebook_to_webpdf(notebook_path, output_pdf):
+    pbar = tqdm(total=100, desc='Notebook to PDF', unit='%')
 
-#     # Create a configuration that allows Chromium to be downloaded if needed.
-#     c = Config()
-#     c.WebPDFExporter.allow_chromium_download = True
+    progress = 0
+    max_progress = 99
+    duration = 12  # 12秒内达到99%
+    tick = duration / max_progress  # 每1%用时
 
-#     # Create the exporter using the configuration.
-#     exporter = WebPDFExporter(config=c)
+    conversion_complete = threading.Event()
 
-#     # Convert the notebook to a WebPDF
-#     pdf_data, resources = exporter.from_notebook_node(nb)
+    # 启动实际转换线程
+    def convert():
+        try:
+            with open(notebook_path, "r", encoding="utf-8") as f:
+                nb = nbformat.read(f, as_version=4)
+            c = Config()
+            c.WebPDFExporter.allow_chromium_download = True
+            exporter = WebPDFExporter(config=c)
+            pdf_data, resources = exporter.from_notebook_node(nb)
+            with open(output_pdf, "wb") as fout:
+                fout.write(pdf_data)
+        except Exception as e:
+            print(f"Conversion error: {e}")
+        conversion_complete.set()
 
-#     # Write the PDF data to an output file.
-#     with open(output_pdf, "wb") as f:
-#         f.write(pdf_data)
+    threading.Thread(target=convert, daemon=True).start()
 
-#     print("Conversion complete:", output_pdf)
+    # 进度递增至99%
+    while progress < max_progress and not conversion_complete.is_set():
+        time.sleep(tick)
+        progress += 1
+        pbar.update(1)
 
-# def notebook_to_html(notebook_path, html_path):
-#     try:
-#         # Load the notebook
-#         with open(notebook_path, 'r', encoding='utf-8') as f:
-#             notebook_content = nbformat.read(f, as_version=4)
+    # 若转换还没好，需继续等待
+    while not conversion_complete.is_set():
+        time.sleep(0.1)
 
-#         # Export the notebook to HTML
-#         html_exporter = HTMLExporter()
-#         (body, resources) = html_exporter.from_notebook_node(notebook_content)
+    # 最后补到100%
+    if pbar.n < 100:
+        pbar.update(100 - pbar.n)
+    pbar.close()
 
-#         # Save the HTML output to a file
-#         with open(html_path, 'w', encoding='utf-8') as f:
-#             f.write(body)
-
-#         print(f"Notebook successfully converted to HTML: {html_path}")
-
-#     except Exception as e:
-#         print(f"Error converting notebook to HTML: {str(e)}")
-
-
-# def html_to_pdf(html_path, output_path):
-#     try:
-#         # Options for wkhtmltopdf
-#         options = {
-#             'no-images': '',  # Disable images if they’re causing issues
-#             'disable-external-links': '',
-#             'page-size': 'A4',
-#             'margin-top': '0.75in',
-#             'margin-right': '0.75in',
-#             'margin-bottom': '0.75in',
-#             'margin-left': '0.75in',
-#             'encoding': "UTF-8",
-#             'header-center': '长沙学院计算机科学与工程学院实验报告',  # Add custom header text
-#             'header-font-size': '10',  # Font size of the header
-#             'header-line': '',  # Add a horizontal line beneath the header
-#             'header-spacing': '5',  # Spacing between the header and content
-#             'footer-center': 'Page [page] of [topage]',  # Footer text with page numbers
-#             'footer-font-size': '10',  # Footer font size
-#             'footer-spacing': '5',    # Spacing between footer and page content
-#         }
-#         pdfkit.from_file(html_path, output_path, options=options)
-#         print(f"Successfully converted {html_path} to {output_path}")
-
-#         # Delete the temporary HTML file after conversion
-#         # if os.path.exists(html_path):
-#         #     os.remove(html_path)
-#         #     print(f"Deleted temporary file: {html_path}")
-
-#     except OSError as os_error:
-#         print(f"Error: Ensure wkhtmltopdf is installed and accessible. Details: {str(os_error)}")
-
-#     except Exception as e:
-#         print(f"Error converting file: {str(e)}")
+    if os.path.exists(output_pdf) and os.path.getsize(output_pdf) > 0:
+        print(f"\n成功生成报告文件: {output_pdf}")
+    else:
+        print(f"\n转换文件 {notebook_path} 到PDF格式出现错误")
 
 
 def notebook_to_html(notebook_path, html_path):

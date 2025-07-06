@@ -1,4 +1,4 @@
-# 实验6的测试集， 进行实验的同学请不要修改测试文件的内容。
+# 实验5的测试集， 进行实验的同学请不要修改测试文件的内容。
 import inspect
 from pathlib import Path
 import sys
@@ -33,7 +33,8 @@ def test_get_columns_by_types(target):
     # 构建期望的 DataFrame
     expected_df = pd.DataFrame({
         "SalePrice": [280000, 1000000, 745000, 425000, 240000],
-        "PropertyType": ["Multiplex", "Single Family", "Single Family", "Single Family", "Single Family"],
+        "PropertyType": ["Multiplex", "Single Family",
+            "Single Family", "Single Family", "Single Family"],
         "Bedrooms": [6, 4, 4, 5, 4],
         "BldgGrade": [7, 10, 8, 7, 7]
     })
