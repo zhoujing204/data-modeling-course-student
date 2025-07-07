@@ -213,21 +213,18 @@ class TestSuite5:
         if not self.test_targets:
             print("没有找到需要测试的函数，请先运行 collect_all_tests()")
             return
+
         for test_name, func in self.test_targets.items():
-            if test_name == "test_get_columns_by_types":
-                self.test_get_columns_by_types(func)
-            elif test_name == "test_calculate_z_scores":
-                self.test_calculate_z_scores(func)
-            elif test_name == "test_analyze_house_prices":
-                self.test_analyze_house_prices(func)
-            elif test_name == "test_calculate_pefr_confidence_interval":
-                self.test_calculate_pefr_confidence_interval(func)
-            elif test_name == "test_analyze_nap_sleep_duration":
-                self.test_analyze_nap_sleep_duration(func)
+            # 根据 test_name 获取对应的测试方法
+            test_method = getattr(self, test_name, None)
+            if test_method and callable(test_method):
+                test_method(func)
+            else:
+                print(f"警告: 找不到测试方法 {test_name}")
 
     def grade_all_tests(self, notebook_path):
         """
-        主函数：从指定的 notebook 路径收集所有函数并进行测试评分
+        从指定的 notebook 路径收集所有函数并进行测试评分
         """
         print(f"正在从 notebook 文件收集测试函数: {notebook_path}")
         collected_tests = self.collect_all_tests(notebook_path)

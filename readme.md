@@ -13,13 +13,9 @@
 ## 开发环境的安装
 
 1. 安装Python SDK 3.10+, 下载安装地址：[www.python.org/downloads/](https://www.python.org/downloads/)
-
 2. 下载和安装Python虚拟环境Anaconda：[下载链接](https://repo.anaconda.com/archive/Anaconda3-2024.10-1-Windows-x86_64.exe)
-
 3. 运行“Anaconda Prompt”命令行, 切换到课程的根目录,运行命令： `pip install -r requirements.txt`
-
 4. 安装集成开发环境VScode，下载安装地址：[code.visualstudio.com/download](https://code.visualstudio.com/download)
-
 5. 在VSCode中安装课程需要的插件：
 
    - Python Extension Pack
@@ -33,7 +29,6 @@
    - vscode-icons
    - code spell checker
    - Github copilot
-
 6. 安装和配置版本控制工具git, 下载和安装地址: [https://git-scm.com/downloads](https://git-scm.com/downloads)
 
 git配置方法如下：
@@ -43,8 +38,7 @@ git config --global user.name “[firstname lastname]”
 git config --global user.email “[valid-email]”
 ```
 
-7. 为了能够自动生成实验报告的pdf文件还需要安装两个辅助软件，下载并安装wkhtmltopdf：[下载地址](https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox-0.12.6-1.msvc2015-win64.exe), 并将`wkthmltopdf`的默认安装目录`C:\Program Files\wkhtmltopdf\bin`添加到Windows的环境变量`Path`中。请查看[添加Windows环境变量的方法](https://jingyan.baidu.com/article/47a29f24610740c0142399ea.html)
-
+7. 为了能够自动生成实验报告的pdf文件还需要安装两个辅助软件，下载并安装wkhtmltopdf：[下载地址](https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox-0.12.6-1.msvc2015-win64.exe), 并将 `wkthmltopdf`的默认安装目录 `C:\Program Files\wkhtmltopdf\bin`添加到Windows的环境变量 `Path`中。请查看[添加Windows环境变量的方法](https://jingyan.baidu.com/article/47a29f24610740c0142399ea.html)
 8. 下载并安装 pandoc:[下载地址](https://github.com/jgm/pandoc/releases/download/3.6.3/pandoc-3.6.3-windows-x86_64.msi)
 
 ## 课程材料的下载
@@ -75,13 +69,11 @@ git clone https://github.com/zhoujing204/data-modeling-course-student.git
    ```bash
    git checkout filename
    ```
-
 3. 在VSCode集成开发环境中登录你的Github账号，运行下面的命令将本地仓库同步到远程仓库:
 
    ```bash
    git push
    ```
-
 4. 使用下面的命令可以从远程仓库下载和更新代码到本地仓库：
 
 ```bash
@@ -111,7 +103,6 @@ git pull
    - 数据科学课程：[课程主页](https://www.coursera.org/specializations/data-science-python)
    - Git课程：[课程主页](https://www.coursera.org/programs/sobma/learn/introduction-git-github)
    - 线性规划课程：[课程主页](https://www.coursera.org/programs/sobma/learn/linear-programming-and-approximation-algorithms)
-
 2. 参考书籍
 
    - Python编程：从入门到实践（第3版） -- [美] 埃里克 • 马瑟斯（Eric Matthes）

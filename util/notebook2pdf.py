@@ -7,6 +7,54 @@ from traitlets.config import Config
 import time
 from tqdm import tqdm
 import threading
+from PyPDF2 import PdfReader, PdfWriter
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from io import BytesIO
+
+def add_header_footer(input_pdf_path, output_pdf_path, font_name="MyChineseFont"):
+    font_path = r"C:\\Windows\\Fonts\\simsun.ttc"
+    header_text = "计算机科学与工程学院数学建模实验报告"
+    footer_text = "页码: 第 {} 页 / 共 {} 页"
+    # 注册自定义中文字体
+    pdfmetrics.registerFont(TTFont(font_name, font_path))
+
+    reader = PdfReader(input_pdf_path)
+    writer = PdfWriter()
+
+    for page_num in range(len(reader.pages)):
+        page = reader.pages[page_num]
+        packet = BytesIO()
+        can = canvas.Canvas(packet, pagesize=letter)
+
+        # 页眉
+        can.setFont(font_name, 10)
+        can.drawCentredString(letter[0] / 2, 770, header_text)
+
+        # 在页眉下方添加实线
+        can.setLineWidth(1)  # 设置线条宽度
+        can.line(50, 760, letter[0] - 50, 760)  # 绘制实线 (x1, y1, x2, y2)
+
+        # 页脚
+        can.setFont(font_name, 8)
+        footer_str = footer_text.format(page_num + 1, len(reader.pages))
+        can.drawCentredString(297, 20, footer_str)
+        can.save()
+        packet.seek(0)
+        new_pdf = PdfReader(packet)
+        page.merge_page(new_pdf.pages[0])
+        writer.add_page(page)
+
+    with open(output_pdf_path, 'wb') as output_file:
+        writer.write(output_file)
+
+    # 删除原文件
+    os.remove(input_pdf_path)
+    # 重命名输出文件为原输入文件名称
+    os.rename(output_pdf_path, input_pdf_path)
+    # print(f"已成功添加中文页眉和页脚，并覆盖保存为 {input_pdf_path}")
 
 def html_to_pdf(html_path, output_path):
     try:
@@ -79,13 +127,12 @@ def html_to_pdf(html_path, output_path):
         pbar.close()
 
         if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-            print(f"成功生成报告文件: {output_path}")
+            print(f"成功生成实验报告文件: {output_path}")
         else:
             print(f"Error or timeout converting {html_path} to PDF")
 
     except Exception as e:
         print(f"Error converting {html_path} to PDF: {str(e)}")
-
 
 
 def convert_notebook_to_webpdf(notebook_path, output_pdf):
@@ -131,6 +178,7 @@ def convert_notebook_to_webpdf(notebook_path, output_pdf):
     pbar.close()
 
     if os.path.exists(output_pdf) and os.path.getsize(output_pdf) > 0:
+        add_header_footer(output_pdf, "temp.pdf")
         print(f"\n成功生成报告文件: {output_pdf}")
     else:
         print(f"\n转换文件 {notebook_path} 到PDF格式出现错误")
