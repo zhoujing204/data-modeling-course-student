@@ -99,8 +99,6 @@ git pull
 
 1. 在线课程
 
-   - Python课程：[课程主页](https://www.coursera.org/programs/sobma/specializations/python)
-   - 统计学课程：[课程主页](https://www.coursera.org/programs/sobma/specializations/statistics-with-python?authProvider=bancolombia&source=search)
    - 数据科学课程：[课程主页](https://www.coursera.org/specializations/data-science-python)
    - Git课程：[课程主页](https://www.coursera.org/programs/sobma/learn/introduction-git-github)
    - 线性规划课程：[课程主页](https://www.coursera.org/programs/sobma/learn/linear-programming-and-approximation-algorithms)
