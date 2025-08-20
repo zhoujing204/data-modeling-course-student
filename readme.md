@@ -12,11 +12,12 @@
 
 ## 开发环境的安装
 
-1. 安装Python SDK 3.10+, 下载安装地址：[www.python.org/downloads/](https://www.python.org/downloads/)
+1. 安装Python SDK 3.12+, 下载安装地址：[www.python.org/downloads/](https://www.python.org/downloads/)
 2. 下载和安装Python虚拟环境Anaconda：[下载链接](https://repo.anaconda.com/archive/Anaconda3-2024.10-1-Windows-x86_64.exe)
-3. 运行“Anaconda Prompt”命令行, 切换到课程的根目录,运行命令： `pip install -r requirements.txt`
-4. 安装集成开发环境VScode，下载安装地址：[code.visualstudio.com/download](https://code.visualstudio.com/download)
-5. 在VSCode中安装课程需要的插件：
+3. 运行“Anaconda Prompt”命令行, 切换到课程的根目录,运行命令： `pip install -r requirements.txt` 来安装课程需要的Python包。
+4. 使用playwright安装Chromium浏览器，运行命令： `python -m playwright install chromium`
+5. 安装集成开发环境VScode，下载安装地址：[code.visualstudio.com/download](https://code.visualstudio.com/download)
+6. 在VSCode中安装课程需要的插件：
 
    - Python Extension Pack
    - Jupyter
@@ -28,8 +29,8 @@
    - Print
    - vscode-icons
    - code spell checker
-   - Github copilot
-6. 安装和配置版本控制工具git, 下载和安装地址: [https://git-scm.com/downloads](https://git-scm.com/downloads)
+
+7. 安装和配置版本控制工具git, 下载和安装地址: [https://git-scm.com/downloads](https://git-scm.com/downloads)
 
 git配置方法如下：
 

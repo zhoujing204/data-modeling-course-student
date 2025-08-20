@@ -1,7 +1,6 @@
 import os
+import platform
 import nbformat
-import pdfkit
-from nbconvert import HTMLExporter
 from nbconvert.exporters.webpdf import WebPDFExporter
 from traitlets.config import Config
 import time
@@ -14,126 +13,187 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from io import BytesIO
 
+# def add_header_footer(input_pdf_path, output_pdf_path, font_name="MyChineseFont"):
+#     font_path = r"C:\\Windows\\Fonts\\simsun.ttc"
+#     header_text = "计算机科学与工程学院数学建模实验报告"
+#     footer_text = "页码: 第 {} 页 / 共 {} 页"
+#     # 注册自定义中文字体
+#     pdfmetrics.registerFont(TTFont(font_name, font_path))
+
+#     reader = PdfReader(input_pdf_path)
+#     writer = PdfWriter()
+
+#     for page_num in range(len(reader.pages)):
+#         page = reader.pages[page_num]
+#         packet = BytesIO()
+#         can = canvas.Canvas(packet, pagesize=letter)
+
+#         # 页眉
+#         can.setFont(font_name, 10)
+#         can.drawCentredString(letter[0] / 2, 770, header_text)
+
+#         # 在页眉下方添加实线
+#         can.setLineWidth(1)  # 设置线条宽度
+#         can.line(50, 760, letter[0] - 50, 760)  # 绘制实线 (x1, y1, x2, y2)
+
+#         # 页脚
+#         can.setFont(font_name, 8)
+#         footer_str = footer_text.format(page_num + 1, len(reader.pages))
+#         can.drawCentredString(297, 20, footer_str)
+#         can.save()
+#         packet.seek(0)
+#         new_pdf = PdfReader(packet)
+#         page.merge_page(new_pdf.pages[0])
+#         writer.add_page(page)
+
+#     with open(output_pdf_path, 'wb') as output_file:
+#         writer.write(output_file)
+
+#     # 删除原文件
+#     os.remove(input_pdf_path)
+#     # 重命名输出文件为原输入文件名称
+#     os.rename(output_pdf_path, input_pdf_path)
+#     # print(f"已成功添加中文页眉和页脚，并覆盖保存为 {input_pdf_path}")
+
 def add_header_footer(input_pdf_path, output_pdf_path, font_name="MyChineseFont"):
-    font_path = r"C:\\Windows\\Fonts\\simsun.ttc"
+    """
+    为PDF文件添加中文页眉和页脚, 支持Windows和macOS系统
+
+    参数:
+    input_pdf_path: 输入PDF文件路径
+    output_pdf_path: 输出PDF文件路径
+    font_name: 字体名称
+    """
+
+    def get_chinese_font_path():
+        """根据操作系统获取中文字体路径, 优先选择TTF格式字体"""
+        system = platform.system()
+
+        if system == "Windows":
+            # Windows系统字体路径（优先TTF格式）
+            font_paths = [
+                r"C:\Windows\Fonts\simhei.ttf",      # 黑体 (TTF)
+                r"C:\Windows\Fonts\simkai.ttf",      # 楷体 (TTF)
+                r"C:\Windows\Fonts\simsun.ttc",      # 宋体 (TTC)
+                r"C:\Windows\Fonts\msyh.ttc",        # 微软雅黑 (TTC)
+            ]
+        elif system == "Darwin":  # macOS
+            # macOS系统字体路径（优先TTF格式，避免TTC格式）
+            font_paths = [
+                # 首先尝试用户安装的TTF字体
+                os.path.expanduser("~/Library/Fonts/SimHei.ttf"),         # 黑体
+                os.path.expanduser("~/Library/Fonts/SimSun.ttf"),         # 宋体
+                os.path.expanduser("~/Library/Fonts/KaiTi.ttf"),          # 楷体
+                os.path.expanduser("~/Library/Fonts/Arial Unicode MS.ttf"), # Arial Unicode MS
+
+                # 系统字体中的TTF格式
+                "/Library/Fonts/Arial Unicode MS.ttf",                    # Arial Unicode MS
+                "/System/Library/Fonts/STHeiti Medium.ttc",               # 华文黑体（作为备选）
+
+                # 如果有安装Office等软件的字体
+                "/Library/Fonts/Microsoft/SimHei.ttf",
+                "/Library/Fonts/Microsoft/SimSun.ttf",
+
+                # 最后尝试TTC格式（可能会失败）
+                "/System/Library/Fonts/PingFang.ttc",                     # 苹方字体
+                "/System/Library/Fonts/Songti.ttc",                       # 宋体
+            ]
+        else:
+            # Linux或其他系统
+            font_paths = [
+                "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+                "/usr/share/fonts/truetype/wqy/wqy-microhei.ttc",
+                "/usr/share/fonts/chinese/TrueType/uming.ttc",
+                "/usr/share/fonts/chinese/TrueType/ukai.ttc",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",        # 备选字体
+            ]
+
+        # 查找存在的字体文件
+        for font_path in font_paths:
+            if os.path.exists(font_path):
+                print(f"找到字体文件: {font_path}")
+                return font_path
+
+        # 如果没有找到中文字体，返回None（将使用默认字体）
+        print(f"警告: 在{system}系统上未找到可用的中文字体文件")
+        return None
+
+    def test_font_registration(font_path, font_name):
+        """测试字体注册是否成功"""
+        try:
+            pdfmetrics.registerFont(TTFont(font_name, font_path))
+            print(f"成功注册字体: {font_path}")
+            return True
+        except Exception as e:
+            print(f"字体注册失败 {font_path}: {e}")
+            return False
+
     header_text = "计算机科学与工程学院数学建模实验报告"
     footer_text = "页码: 第 {} 页 / 共 {} 页"
-    # 注册自定义中文字体
-    pdfmetrics.registerFont(TTFont(font_name, font_path))
 
-    reader = PdfReader(input_pdf_path)
-    writer = PdfWriter()
+    # 获取字体路径并尝试注册
+    font_path = get_chinese_font_path()
+    use_chinese_font = False
 
-    for page_num in range(len(reader.pages)):
-        page = reader.pages[page_num]
-        packet = BytesIO()
-        can = canvas.Canvas(packet, pagesize=letter)
+    if font_path:
+        use_chinese_font = test_font_registration(font_path, font_name)
 
-        # 页眉
-        can.setFont(font_name, 10)
-        can.drawCentredString(letter[0] / 2, 770, header_text)
 
-        # 在页眉下方添加实线
-        can.setLineWidth(1)  # 设置线条宽度
-        can.line(50, 760, letter[0] - 50, 760)  # 绘制实线 (x1, y1, x2, y2)
-
-        # 页脚
-        can.setFont(font_name, 8)
-        footer_str = footer_text.format(page_num + 1, len(reader.pages))
-        can.drawCentredString(297, 20, footer_str)
-        can.save()
-        packet.seek(0)
-        new_pdf = PdfReader(packet)
-        page.merge_page(new_pdf.pages[0])
-        writer.add_page(page)
-
-    with open(output_pdf_path, 'wb') as output_file:
-        writer.write(output_file)
-
-    # 删除原文件
-    os.remove(input_pdf_path)
-    # 重命名输出文件为原输入文件名称
-    os.rename(output_pdf_path, input_pdf_path)
-    # print(f"已成功添加中文页眉和页脚，并覆盖保存为 {input_pdf_path}")
-
-def html_to_pdf(html_path, output_path):
     try:
-        # Options for wkhtmltopdf
-        options = {
-            'no-images': '',
-            'disable-external-links': '',
-            'page-size': 'A4',
-            'margin-top': '0.75in',
-            'margin-right': '0.75in',
-            'margin-bottom': '0.75in',
-            'margin-left': '0.75in',
-            'encoding': "UTF-8",
-            'header-center': '长沙学院计算机科学与工程学院实验报告',
-            'header-font-size': '10',
-            'header-line': '',
-            'header-spacing': '5',
-            'footer-center': 'Page [page] of [topage]',
-            'footer-font-size': '10',
-            'footer-spacing': '5',
-        }
+        reader = PdfReader(input_pdf_path)
+        writer = PdfWriter()
 
-        # Create progress bar
-        pbar = tqdm(total=100, desc="Converting to PDF", unit="%")
-        start_time = time.time()
+        for page_num in range(len(reader.pages)):
+            page = reader.pages[page_num]
+            packet = BytesIO()
+            can = canvas.Canvas(packet, pagesize=letter)
 
-        # Estimate total time based on file size (adjust constant based on experience)
-        file_size = os.path.getsize(html_path)
-        estimated_total_time = max(5, min(40, file_size / 100000))  # Between 5-30 seconds
+            # 设置字体
+            if use_chinese_font:
+                can.setFont(font_name, 10)
 
-        # Flag to indicate conversion is complete
-        conversion_complete = threading.Event()
+            else:
+                can.setFont("Helvetica", 10)  # 默认字体
 
-        # Start the conversion in a separate thread
-        def convert():
-            pdfkit.from_file(html_path, output_path, options=options)
-            conversion_complete.set()
 
-        threading.Thread(target=convert, daemon=True).start()
+            # 页眉
+            can.drawCentredString(letter[0] / 2, 770, header_text)
 
-        # Monitor and update progress while conversion is running
-        progress = 0
-        while not conversion_complete.is_set() and progress < 100:
-            elapsed = time.time() - start_time
+            # 在页眉下方添加实线
+            can.setLineWidth(1)
+            can.line(50, 760, letter[0] - 50, 760)
 
-            # Calculate progress based on elapsed time
-            new_progress = min(95, int((elapsed / estimated_total_time) * 100))
+            # 页脚
+            if use_chinese_font:
+                can.setFont(font_name, 8)
+            else:
+                can.setFont("Helvetica", 8)  # 默认字体
 
-            if new_progress > progress:
-                pbar.update(new_progress - progress)
-                progress = new_progress
+            footer_str = footer_text.format(page_num + 1, len(reader.pages))
+            can.drawCentredString(letter[0] / 2, 20, footer_str)
 
-                # Estimate remaining time
-                remaining = estimated_total_time - elapsed
-                if remaining > 0:
-                    pbar.set_postfix({"Remaining": f"{remaining:.1f}s"})
+            can.save()
+            packet.seek(0)
+            new_pdf = PdfReader(packet)
+            page.merge_page(new_pdf.pages[0])
+            writer.add_page(page)
 
-            time.sleep(0.1)
+        # 写入输出文件
+        with open(output_pdf_path, 'wb') as output_file:
+            writer.write(output_file)
 
-            # Check if output file exists and is growing
-            if os.path.exists(output_path):
-                output_size = os.path.getsize(output_path)
-                # Additional logic could be added here to refine progress based on output size
+        # 删除原文件并重命名
+        if os.path.exists(input_pdf_path):
+            os.remove(input_pdf_path)
+        os.rename(output_pdf_path, input_pdf_path)
 
-        # Wait for conversion to complete (with timeout)
-        conversion_complete.wait(timeout=max(60, estimated_total_time * 2))
-
-        # Complete the progress bar
-        pbar.update(100 - progress)
-        pbar.close()
-
-        if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
-            print(f"成功生成实验报告文件: {output_path}")
-        else:
-            print(f"Error or timeout converting {html_path} to PDF")
 
     except Exception as e:
-        print(f"Error converting {html_path} to PDF: {str(e)}")
-
+        print(f"处理PDF文件时出错: {e}")
+        # 如果出错，确保不删除原文件
+        if os.path.exists(output_pdf_path):
+            os.remove(output_pdf_path)
+        raise
 
 def convert_notebook_to_webpdf(notebook_path, output_pdf):
     pbar = tqdm(total=100, desc='Notebook to PDF', unit='%')
@@ -182,42 +242,3 @@ def convert_notebook_to_webpdf(notebook_path, output_pdf):
         print(f"\n成功生成报告文件: {output_pdf}")
     else:
         print(f"\n转换文件 {notebook_path} 到PDF格式出现错误")
-
-
-def notebook_to_html(notebook_path, html_path):
-    try:
-        # Load the notebook
-        with open(notebook_path, 'r', encoding='utf-8') as f:
-            notebook_content = nbformat.read(f, as_version=4)
-
-        # Export the notebook to HTML
-        html_exporter = HTMLExporter()
-        (body, resources) = html_exporter.from_notebook_node(notebook_content)
-
-        # Add styles for table (to ensure table borders are visible)
-        table_styles = """
-        <style>
-        table {
-            margin: 0 auto;
-            border-collapse: collapse;
-            width: 100%;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        td, th {
-            padding: 8px;
-            text-align: left;
-        }
-        </style>
-        """
-        body = table_styles + body  # Prepend the style block to the HTML content
-
-        # Save the updated HTML output to a file
-        with open(html_path, 'w', encoding='utf-8') as f:
-            f.write(body)
-
-        print(f"Notebook successfully converted to HTML with table styles: {html_path}")
-
-    except Exception as e:
-        print(f"Error converting notebook to HTML: {str(e)}")
