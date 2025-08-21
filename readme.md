@@ -2,13 +2,16 @@
 
 ## 课程介绍
 
-数据建模课程是计算机科学与工程学院开设的一门面向大一学生的基础课程，课程实验内容涵盖Python编程入门、线性规划及统计学基础，结合Jupyter Notebook进行实验。课程实验指导开发环境安装、代码管理、实验报告生成及工具使用，提供丰富的在线课程与书籍进行参考，助力学生掌握数据分析与建模技能。
+数据建模课程是计算机科学与工程学院开设的一门面向大一和大二学生的基础课程，课程实验内容涵盖Python编程入门、线性规划、统计学基础和神经网络，结合Jupyter Notebook进行实验。课程实验指导开发环境安装、代码管理、实验报告生成及工具使用，有丰富的在线课程与书籍作为参考，助力学生掌握Python编程、数据分析、线性规划、神经网络等方面的知识。
 
 ## 课程实验内容
 
-1. Python基础
-2. 线性规划
-3. 统计学基础
+1. Python语言回顾
+2. NumPy和Pandas
+3. 线性规划
+4. 整数线性规划
+5. 统计方法分析
+6. 神经网络
 
 ## 开发环境的安装
 
@@ -16,7 +19,7 @@
 2. 下载和安装Python虚拟环境Anaconda：[下载链接](https://repo.anaconda.com/archive/Anaconda3-2024.10-1-Windows-x86_64.exe)
 3. 运行“Anaconda Prompt”命令行, 切换到课程的根目录,运行命令： `pip install -r requirements.txt` 来安装课程需要的Python包。
 4. 使用playwright安装Chromium浏览器，运行命令： `python -m playwright install chromium`
-5. 安装集成开发环境VScode，下载安装地址：[code.visualstudio.com/download](https://code.visualstudio.com/download)
+5. 安装集成开发环境VS Code，下载安装地址：[code.visualstudio.com/download](https://code.visualstudio.com/download)
 6. 在VSCode中安装课程需要的插件：
 
    - Python Extension Pack
@@ -39,9 +42,6 @@ git config --global user.name “[firstname lastname]”
 git config --global user.email “[valid-email]”
 ```
 
-7. 为了能够自动生成实验报告的pdf文件还需要安装两个辅助软件，下载并安装wkhtmltopdf：[下载地址](https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6-1/wkhtmltox-0.12.6-1.msvc2015-win64.exe), 并将 `wkthmltopdf`的默认安装目录 `C:\Program Files\wkhtmltopdf\bin`添加到Windows的环境变量 `Path`中。请查看[添加Windows环境变量的方法](https://jingyan.baidu.com/article/47a29f24610740c0142399ea.html)
-8. 下载并安装 pandoc:[下载地址](https://github.com/jgm/pandoc/releases/download/3.6.3/pandoc-3.6.3-windows-x86_64.msi)
-
 ## 课程材料的下载
 
 1. 访问课程仓库主页：[github.com/zhoujing204/data-modeling-course-student](https://github.com/zhoujing204/data-modeling-course-student)
@@ -51,7 +51,7 @@ git config --global user.email “[valid-email]”
 git clone https://github.com/zhoujing204/data-modeling-course-student.git
 ```
 
-如果没有安装git，也可以直接通过链接下载zip文件：[下载链接](https://github.com/zhoujing204/data-modeling-course-student/archive/refs/heads/master.zip)
+如果没有安装git，也可以直接通过链接下载课程材料的压缩文件包：[下载链接](https://github.com/zhoujing204/data-modeling-course-student/archive/refs/heads/master.zip)
 
 ## 实验代码的管理
 
@@ -70,11 +70,13 @@ git clone https://github.com/zhoujing204/data-modeling-course-student.git
    ```bash
    git checkout filename
    ```
-3. 在VSCode集成开发环境中登录你的Github账号，运行下面的命令将本地仓库同步到远程仓库:
+
+3. 在VS Code集成开发环境中登录你的GitHub账号，运行下面的命令将本地仓库同步到远程仓库:
 
    ```bash
    git push
    ```
+
 4. 使用下面的命令可以从远程仓库下载和更新代码到本地仓库：
 
 ```bash
@@ -87,7 +89,7 @@ git pull
 
 1. 完成Jupyter Notebook文件（.ipynb文件）中的习题并保存。
 2. 直接利用课程提供的脚本自动生成实验报告pdf文件。
-3. 将实验报告pdf文件提交到对应的班级和实验的腾讯文档收集表:[文档汇总地址](https://docs.qq.com/doc/DWUxJanVwYXFpZmF2)
+3. 将实验报告pdf文件以及其他需要的材料提交到对应的班级和实验的腾讯文档收集表:[文档汇总地址](https://docs.qq.com/doc/DWUxJanVwYXFpZmF2)
 
 方法二：
 
