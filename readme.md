@@ -112,7 +112,7 @@ git pull
    - 线性规划课程：[课程主页](https://www.coursera.org/programs/sobma/learn/linear-programming-and-approximation-algorithms)
 2. 参考书籍
 
-   - Python编程：从入门到实践（第3版） -- [美] 埃里克 • 马瑟斯（Eric Matthes）
-   - 流畅的 Python（第2版） -- [巴西] 卢西亚诺 • 拉马略
+   - Python编程：从入门到实践（第3版） – [美] 埃里克 • 马瑟斯（Eric Matthes）
+   - 流畅的 Python（第2版） – [巴西] 卢西亚诺 • 拉马略
    - Practical Statistics for Data Scientists 50+ Essential Concepts Using R and Python
    - Python for Data Analysis(第2版)
