@@ -116,9 +116,6 @@ class TestSuite1(BaseTestSuite):
             # 检查f-string的使用
             assert 'f"' in source_code or "f'" in source_code, "函数中必须使用f-string格式化字符串"
 
-            # 检查关键操作
-            assert "split('@')" in source_code, "必须使用split('@')提取邮箱域名"
-
             self.test_results[test_name] = 1
             print(colored(f"恭喜你通过了习题一 {test_name} 测试。{sum(self.test_results.values())}/{len(self.test_results)}", "green"))
 

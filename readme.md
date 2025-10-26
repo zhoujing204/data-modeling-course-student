@@ -20,7 +20,7 @@
 
    ```bash
    python -m venv venv
-   "venv/bin/activate"
+   "venv/Scripts/activate"
    ```
 
 3. 在终端中运行命令： `pip install -r requirements.txt` 来安装课程需要的Python包。
