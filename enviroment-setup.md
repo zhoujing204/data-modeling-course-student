@@ -9,7 +9,14 @@
    ```
 
 3. 在终端中运行命令： `pip install -r requirements.txt` 来安装课程需要的Python包。
-4. 使用playwright安装Chromium浏览器，运行命令： `python -m playwright install chromium`
+
+4. 使用playwright安装Chromium浏览器，运行命令：
+
+```bash
+set PLAYWRIGHT_DOWNLOAD_HOST=https://npmmirror.com/mirrors/playwright
+python -m playwright install chromium
+```
+
 5. 安装集成开发环境VS Code，下载安装地址：[code.visualstudio.com/download](https://code.visualstudio.com/download)
 6. 在VS Code中安装课程需要的插件：
 
