@@ -10,34 +10,16 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
     - y ≥ 0
 
     And objective function z = 3x + y (Integer solutions only)
-
-    Parameters:
-    -----------
-    figsize : tuple, optional
-        Figure size (width, height). Default is (8, 8)
-    show_grid : bool, optional
-        Whether to show grid lines. Default is True
-
-    Returns:
-    --------
-    fig, ax : matplotlib figure and axis objects
-    integer_points : list
-        List of all feasible integer point coordinates
-    optimal_point : list
-        Coordinates of the optimal integer point
-    optimal_value : float
-        Optimal value of the objective function at the integer optimal point
     """
 
     # ------------------------------------------------------------------ #
-    #  1. Constraint lines — clipped to y ≥ 0 to avoid stray lines       #
+    #  1. Constraint lines — clipped to y ≥ 0                             #
     # ------------------------------------------------------------------ #
     x = np.linspace(0, 5, 400)
 
-    y1 = 4 - x        # x + y = 4
-    y2 = 5 - 2 * x    # 2x + y = 5
+    y1 = 4 - x
+    y2 = 5 - 2 * x
 
-    # Clip both lines so they are only drawn where y ≥ 0
     y1_clipped = np.where(y1 >= 0, y1, np.nan)
     y2_clipped = np.where(y2 >= 0, y2, np.nan)
 
@@ -57,7 +39,7 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
     optimal_value = objective_values[max_idx]
 
     # ------------------------------------------------------------------ #
-    #  3. LP relaxation vertices (for reference only)                     #
+    #  3. LP relaxation vertices                                          #
     # ------------------------------------------------------------------ #
     lp_vertices  = [[0, 0], [0, 4], [1, 3], [2.5, 0]]
     lp_obj_vals  = [3 * v[0] + v[1] for v in lp_vertices]
@@ -67,13 +49,11 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
     # ------------------------------------------------------------------ #
     fig, ax = plt.subplots(figsize=figsize)
 
-    # -- Constraint boundary lines (clipped) --
     ax.plot(x, y1_clipped, label=r'$x + y \leq 4$',  color='blue',  linewidth=2)
     ax.plot(x, y2_clipped, label=r'$2x + y \leq 5$', color='green', linewidth=2)
     ax.axhline(0, label=r'$y \geq 0$',  color='red',    linewidth=2)
     ax.axvline(0, label=r'$x \geq 0$',  color='orange', linewidth=2)
 
-    # -- Continuous feasible region (LP relaxation, light shading) --
     y3 = np.minimum(y1, y2)
     ax.fill_between(x, 0, y3, where=(y3 >= 0),
                     color='lightblue', alpha=0.25,
@@ -85,25 +65,19 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
     X, Y = np.meshgrid(np.linspace(0, 5, 200), np.linspace(0, 5, 200))
     Z    = 3 * X + Y
 
-    # Grey dashed background contours
     contour_levels = np.linspace(0, optimal_value * 1.2, 8)
     contours = ax.contour(X, Y, Z, levels=contour_levels,
                           colors='gray', alpha=0.5, linestyles='--')
     ax.clabel(contours, inline=True, fontsize=8, fmt='z=%.1f')
 
-    # ── Optimal contour: draw as a direct ax.plot() line instead of     #
-    #    ax.contour() to avoid excessive spacing / extent issues.        #
-    #    From z = 3x + y = optimal_value  →  y = optimal_value - 3x     #
-    #    Clip to the visible axes range [0, 5] for both x and y.        #
-    x_opt  = np.linspace(0, 5, 400)
-    y_opt  = optimal_value - 3 * x_opt          # y = z* - 3x
-    # Keep only the portion inside the plot window (0 ≤ y ≤ 5)
-    mask   = (y_opt >= 0) & (y_opt <= 5)
+    # Optimal contour as a direct line
+    x_opt = np.linspace(0, 5, 400)
+    y_opt = optimal_value - 3 * x_opt
+    mask  = (y_opt >= 0) & (y_opt <= 5)
     ax.plot(x_opt[mask], y_opt[mask],
             color='purple', linewidth=2.5, linestyle='-',
             label=f'Optimal Contour  z={optimal_value:.0f}')
 
-    # Inline label near the middle of the visible segment
     mid_idx = np.where(mask)[0][len(np.where(mask)[0]) // 2]
     ax.annotate(f'z={optimal_value:.1f} (ILP Optimal)',
                 xy=(x_opt[mid_idx], y_opt[mid_idx]),
@@ -111,7 +85,7 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
                 fontsize=9, color='purple', fontweight='bold')
 
     # ------------------------------------------------------------------ #
-    #  6. LP relaxation vertices (hollow diamonds, for reference)         #
+    #  6. LP relaxation vertices                                          #
     # ------------------------------------------------------------------ #
     for v, zv in zip(lp_vertices, lp_obj_vals):
         ax.plot(v[0], v[1], marker='D', color='none',
@@ -142,8 +116,13 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
         if is_optimal:
             label += '\n★ ILP Optimal'
 
-        x_offset = 8 if pt[0] < 2 else -65
-        y_offset = 8
+        # ─── FIXED: place label to the RIGHT when x >= 2 ───────── #
+        if pt[0] >= 2:
+            x_offset = 15       # to the right of the point
+            y_offset = 8
+        else:
+            x_offset = 8        # original position (to the left-ish)
+            y_offset = 8
 
         ax.annotate(label, (pt[0], pt[1]),
                     xytext=(x_offset, y_offset),
@@ -155,7 +134,7 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
                               linewidth=edge_width))
 
     # ------------------------------------------------------------------ #
-    #  8. Colour-bar for integer points                                   #
+    #  8. Colour-bar                                                      #
     # ------------------------------------------------------------------ #
     sm = plt.cm.ScalarMappable(cmap=cmap,
                                 norm=plt.Normalize(vmin=z_arr.min(),
@@ -165,7 +144,7 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
     cbar.set_label('Objective value  z = 3x + y', fontsize=9)
 
     # ------------------------------------------------------------------ #
-    #  9. Arrow showing gradient direction of objective function          #
+    #  9. Gradient arrow                                                  #
     # ------------------------------------------------------------------ #
     grad      = np.array([3.0, 1.0])
     grad_unit = grad / np.linalg.norm(grad)
@@ -179,7 +158,7 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
             fontweight='bold', fontsize=9)
 
     # ------------------------------------------------------------------ #
-    #  10. Custom legend entries                                           #
+    #  10. Legend                                                          #
     # ------------------------------------------------------------------ #
     from matplotlib.lines import Line2D
     extra_handles = [
@@ -223,8 +202,6 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
 
 
 def example_usage_ilp():
-    """Run the ILP visualisation and print a formatted solution report."""
-
     print("Solving Integer Linear Programme  z = 3x + y …")
     fig, ax, integer_points, optimal_point, optimal_value = \
         plot_integer_linear_programming(figsize=(9, 8))
