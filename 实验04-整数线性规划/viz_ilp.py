@@ -30,34 +30,36 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
     """
 
     # ------------------------------------------------------------------ #
-    #  1. Constraint lines over a continuous domain (for shading / lines) #
+    #  1. Constraint lines — clipped to y ≥ 0 to avoid stray lines       #
     # ------------------------------------------------------------------ #
     x = np.linspace(0, 5, 400)
 
     y1 = 4 - x        # x + y = 4
     y2 = 5 - 2 * x    # 2x + y = 5
 
+    # Clip both lines so they are only drawn where y ≥ 0
+    y1_clipped = np.where(y1 >= 0, y1, np.nan)
+    y2_clipped = np.where(y2 >= 0, y2, np.nan)
+
     # ------------------------------------------------------------------ #
     #  2. Enumerate every feasible integer point                          #
     # ------------------------------------------------------------------ #
     integer_points = []
-    for xi in range(0, 6):          # x = 0, 1, 2, …, 5
-        for yi in range(0, 6):      # y = 0, 1, 2, …, 5
+    for xi in range(0, 6):
+        for yi in range(0, 6):
             if (xi + yi <= 4) and (2 * xi + yi <= 5) and xi >= 0 and yi >= 0:
                 integer_points.append([xi, yi])
 
-    # Objective values at every feasible integer point
     objective_values = [3 * p[0] + p[1] for p in integer_points]
 
-    # Optimal integer solution
-    max_idx        = int(np.argmax(objective_values))
-    optimal_point  = integer_points[max_idx]
-    optimal_value  = objective_values[max_idx]
+    max_idx       = int(np.argmax(objective_values))
+    optimal_point = integer_points[max_idx]
+    optimal_value = objective_values[max_idx]
 
     # ------------------------------------------------------------------ #
     #  3. LP relaxation vertices (for reference only)                     #
     # ------------------------------------------------------------------ #
-    lp_vertices = [[0, 0], [0, 4], [1, 3], [2.5, 0]]
+    lp_vertices  = [[0, 0], [0, 4], [1, 3], [2.5, 0]]
     lp_obj_vals  = [3 * v[0] + v[1] for v in lp_vertices]
 
     # ------------------------------------------------------------------ #
@@ -65,11 +67,11 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
     # ------------------------------------------------------------------ #
     fig, ax = plt.subplots(figsize=figsize)
 
-    # -- Constraint boundary lines --
-    ax.plot(x, y1, label=r'$x + y \leq 4$',   color='blue',  linewidth=2)
-    ax.plot(x, y2, label=r'$2x + y \leq 5$',  color='green', linewidth=2)
-    ax.axhline(0,  label=r'$y \geq 0$',        color='red',   linewidth=2)
-    ax.axvline(0,  label=r'$x \geq 0$',        color='orange',linewidth=2)
+    # -- Constraint boundary lines (clipped) --
+    ax.plot(x, y1_clipped, label=r'$x + y \leq 4$',  color='blue',  linewidth=2)
+    ax.plot(x, y2_clipped, label=r'$2x + y \leq 5$', color='green', linewidth=2)
+    ax.axhline(0, label=r'$y \geq 0$',  color='red',    linewidth=2)
+    ax.axvline(0, label=r'$x \geq 0$',  color='orange', linewidth=2)
 
     # -- Continuous feasible region (LP relaxation, light shading) --
     y3 = np.minimum(y1, y2)
@@ -83,16 +85,30 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
     X, Y = np.meshgrid(np.linspace(0, 5, 200), np.linspace(0, 5, 200))
     Z    = 3 * X + Y
 
+    # Grey dashed background contours
     contour_levels = np.linspace(0, optimal_value * 1.2, 8)
     contours = ax.contour(X, Y, Z, levels=contour_levels,
                           colors='gray', alpha=0.5, linestyles='--')
     ax.clabel(contours, inline=True, fontsize=8, fmt='z=%.1f')
 
-    # Optimal contour line (red)
-    opt_contour = ax.contour(X, Y, Z, levels=[optimal_value],
-                             colors='orange', linewidths=2.5)
-    ax.clabel(opt_contour, inline=True, fontsize=10,
-              fmt='z=%.1f (ILP Optimal)')
+    # ── Optimal contour: draw as a direct ax.plot() line instead of     #
+    #    ax.contour() to avoid excessive spacing / extent issues.        #
+    #    From z = 3x + y = optimal_value  →  y = optimal_value - 3x     #
+    #    Clip to the visible axes range [0, 5] for both x and y.        #
+    x_opt  = np.linspace(0, 5, 400)
+    y_opt  = optimal_value - 3 * x_opt          # y = z* - 3x
+    # Keep only the portion inside the plot window (0 ≤ y ≤ 5)
+    mask   = (y_opt >= 0) & (y_opt <= 5)
+    ax.plot(x_opt[mask], y_opt[mask],
+            color='purple', linewidth=2.5, linestyle='-',
+            label=f'Optimal Contour  z={optimal_value:.0f}')
+
+    # Inline label near the middle of the visible segment
+    mid_idx = np.where(mask)[0][len(np.where(mask)[0]) // 2]
+    ax.annotate(f'z={optimal_value:.1f} (ILP Optimal)',
+                xy=(x_opt[mid_idx], y_opt[mid_idx]),
+                xytext=(8, 8), textcoords='offset points',
+                fontsize=9, color='purple', fontweight='bold')
 
     # ------------------------------------------------------------------ #
     #  6. LP relaxation vertices (hollow diamonds, for reference)         #
@@ -105,10 +121,9 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
     # ------------------------------------------------------------------ #
     #  7. All feasible integer points — colour-coded by z value           #
     # ------------------------------------------------------------------ #
-    # Normalise z values to [0, 1] for colour mapping
-    z_arr    = np.array(objective_values, dtype=float)
-    z_norm   = (z_arr - z_arr.min()) / (z_arr.max() - z_arr.min() + 1e-9)
-    cmap     = plt.cm.YlOrRd                # light-yellow → deep-red
+    z_arr  = np.array(objective_values, dtype=float)
+    z_norm = (z_arr - z_arr.min()) / (z_arr.max() - z_arr.min() + 1e-9)
+    cmap   = plt.cm.YlOrRd
 
     for i, (pt, zv, zn) in enumerate(zip(integer_points, objective_values, z_norm)):
         is_optimal = (pt == optimal_point)
@@ -123,12 +138,10 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
                 markersize=size, markeredgecolor=edge_color,
                 markeredgewidth=edge_width, zorder=5)
 
-        # Annotation: always show z value; flag optimal
         label = f'({pt[0]}, {pt[1]})\nz={zv}'
         if is_optimal:
             label += '\n★ ILP Optimal'
 
-        # Offset annotations to avoid overlap
         x_offset = 8 if pt[0] < 2 else -65
         y_offset = 8
 
@@ -179,6 +192,8 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
         Line2D([0], [0], marker='D', color='w',
                markerfacecolor='none', markeredgecolor='steelblue',
                markersize=9, label='LP Relaxation Vertices'),
+        Line2D([0], [0], color='purple', linewidth=2.5,
+               label=f'Optimal Contour  z={optimal_value:.0f}'),
     ]
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles=handles + extra_handles,
@@ -197,7 +212,6 @@ def plot_integer_linear_programming(figsize=(8, 8), show_grid=True):
     ax.axhline(0, color='black', lw=0.8)
     ax.axvline(0, color='black', lw=0.8)
 
-    # Integer grid ticks
     ax.set_xticks(range(6))
     ax.set_yticks(range(6))
 
@@ -228,8 +242,8 @@ def example_usage_ilp():
     print("  " + "-" * 40)
 
     for pt in integer_points:
-        zv     = 3 * pt[0] + pt[1]
-        note   = "← ILP OPTIMAL" if pt == optimal_point else ""
+        zv   = 3 * pt[0] + pt[1]
+        note = "← ILP OPTIMAL" if pt == optimal_point else ""
         print(f"  ({pt[0]}, {pt[1]}){'':<10} z = {zv:<6.1f} {note}")
 
     print(f"\n  Optimal Integer Solution:")
