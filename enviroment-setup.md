@@ -29,4 +29,5 @@ python -m playwright install chromium
    - markdownlint
    - Print
    - vscode-icons
+   - vscode-pdf
    - code spell checker
