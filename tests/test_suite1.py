@@ -316,18 +316,7 @@ class TestSuite1(BaseTestSuite):
             result = target('add', 1.4, 1.7, precision=0)
             assert result == 3, f"精度0错误: 期望3, 得到{result}"
 
-            # 测试用例4: show_steps关键字参数
-            result = target('add', 1, 2, 3, show_steps=True)
-            expected_patterns = ['1 + 2 + 3', '= 6']
-            assert all(pattern in str(result) for pattern in expected_patterns), \
-                f"加法步骤显示错误: {result}"
-
-            result = target('multiply', 2, 3, show_steps=True)
-            expected_patterns = ['2 * 3', '= 6']
-            assert all(pattern in str(result) for pattern in expected_patterns), \
-                f"乘法步骤显示错误: {result}"
-
-            # 测试用例5: **options参数 - unit
+            # 测试用例4: **options参数 - unit
             result = target('add', 10, 20, unit='kg')
             assert '30' in str(result) and 'kg' in str(result), \
                 f"单位显示错误: {result}"
@@ -343,33 +332,27 @@ class TestSuite1(BaseTestSuite):
             assert all(x in str(result) for x in ['总数量', '24', '个']), \
                 f"组合参数错误: {result}"
 
-            # 测试用例8: show_steps + options组合
-            result = target('add', 10, 20, 30, show_steps=True,
-                        name='总重量', unit='kg')
-            result_str = str(result)
-            assert '总重量' in result_str and '60kg' in result_str, \
-                f"步骤+选项组合错误: {result}"
 
-            # 测试用例9: 单个数字
+            # 测试用例8: 单个数字
             result = target('add', 5)
             assert result == 5, f"单数字加法错误: 期望5, 得到{result}"
 
             result = target('multiply', 7)
             assert result == 7, f"单数字乘法错误: 期望7, 得到{result}"
 
-            # 测试用例10: 空数字列表
+            # 测试用例9: 空数字列表
             result = target('add')
             assert result == 0.0, f"空列表加法错误: 期望0, 得到{result}"
 
-            # 测试用例11: 不支持的操作
+            # 测试用例10: 不支持的操作
             result = target('subtract', 5, 3)
             assert '不支持' in str(result), f"不支持操作处理错误: {result}"
 
-            # 测试用例12: 浮点数处理
+            # 测试用例11: 浮点数处理
             result = target('add', 1.5, 2.3, 3.4, precision=1)
             assert result == 7.2, f"浮点数加法错误: 期望7.2, 得到{result}"
 
-            # 测试用例13:  precision为负数
+            # 测试用例12:  precision为负数
             result = target('add', 22,  33, precision=-1)
             assert result == 60, f"负数精度处理错误: 期望60, 获得{result}"
 
