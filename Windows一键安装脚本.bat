@@ -107,10 +107,12 @@ REM ------------------------------------------------------------
 REM 步骤 4: 安装所需的 Python 包
 REM ------------------------------------------------------------
 echo [步骤 4] 正在安装 requirements.txt 中的依赖包 (使用清华源加速)...
-python -m pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple >nul 2>&1
-pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+REM 删除了 pip upgrade 避免 Windows 文件占用导致的损坏
+REM 强制使用 python -m pip 代替直接调用 pip.exe，极其稳定
+python -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 if errorlevel 1 (
-    echo [错误] 依赖包安装失败。
+    echo [错误] 依赖包安装失败。请检查 requirements.txt 或网络。
     pause
     exit /b 1
 )
@@ -176,17 +178,23 @@ echo.
 REM ------------------------------------------------------------
 REM 步骤 7: 安装 VS Code 插件
 REM ------------------------------------------------------------
-echo [步骤 7] 正在安装 VS Code 插件...
+echo [步骤 7] 正在后台批量安装 VS Code 插件 (请稍候，这可能需要一两分钟)...
+
 set EXTENSIONS=ms-python.python ms-python.vscode-pylance ms-toolsai.jupyter formulahendry.code-runner ms-toolsai.data-wrangler yzhang.markdown-all-in-one goessner.mdmath DavidAnson.vscode-markdownlint pdconsec.vscode-print vscode-icons-team.vscode-icons tomoki1207.pdf streetsidesoftware.code-spell-checker
 
+REM 将列表转换为多个 --install-extension 参数
+set "EXT_ARGS="
 for %%e in (%EXTENSIONS%) do (
-    echo   正在安装 %%e ...
-    call code --install-extension %%e --force >nul 2>&1
-    if errorlevel 1 (
-        echo   [警告] 无法安装 %%e，可能需要手动安装。
-    ) else (
-        echo   [成功] %%e 已安装。
-    )
+    set "EXT_ARGS=!EXT_ARGS! --install-extension %%e"
+)
+
+REM 明确调用 code.cmd 避免弹出图形界面，并一次性安装所有插件
+call code.cmd %EXT_ARGS% --force >nul 2>&1
+
+if errorlevel 1 (
+    echo   [警告] 部分插件安装失败，您可能需要稍后在 VS Code 中手动安装。
+) else (
+    echo   [成功] 所有课程专属插件均已安装完毕！
 )
 echo.
 
