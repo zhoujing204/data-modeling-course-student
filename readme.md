@@ -15,7 +15,7 @@
 
 ## 开发环境的安装
 
-1. 安装Python SDK 3.12+, 下载安装地址：[www.python.org/downloads/](https://www.python.org/downloads/)
+1. 安装Python SDK 3.13+, 下载安装地址：[www.python.org/downloads/](https://www.python.org/downloads/)
 2. 打开Windows终端cmd，切换到课程的根目录`data-modeling-course-student`，在终端cmd中运行下面的命令创建并激活Python虚拟环境：
 
    ```bash
