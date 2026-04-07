@@ -13,48 +13,6 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from io import BytesIO
 
-# def add_header_footer(input_pdf_path, output_pdf_path, font_name="MyChineseFont"):
-#     font_path = r"C:\\Windows\\Fonts\\simsun.ttc"
-#     header_text = "计算机科学与工程学院数学建模实验报告"
-#     footer_text = "页码: 第 {} 页 / 共 {} 页"
-#     # 注册自定义中文字体
-#     pdfmetrics.registerFont(TTFont(font_name, font_path))
-
-#     reader = PdfReader(input_pdf_path)
-#     writer = PdfWriter()
-
-#     for page_num in range(len(reader.pages)):
-#         page = reader.pages[page_num]
-#         packet = BytesIO()
-#         can = canvas.Canvas(packet, pagesize=letter)
-
-#         # 页眉
-#         can.setFont(font_name, 10)
-#         can.drawCentredString(letter[0] / 2, 770, header_text)
-
-#         # 在页眉下方添加实线
-#         can.setLineWidth(1)  # 设置线条宽度
-#         can.line(50, 760, letter[0] - 50, 760)  # 绘制实线 (x1, y1, x2, y2)
-
-#         # 页脚
-#         can.setFont(font_name, 8)
-#         footer_str = footer_text.format(page_num + 1, len(reader.pages))
-#         can.drawCentredString(297, 20, footer_str)
-#         can.save()
-#         packet.seek(0)
-#         new_pdf = PdfReader(packet)
-#         page.merge_page(new_pdf.pages[0])
-#         writer.add_page(page)
-
-#     with open(output_pdf_path, 'wb') as output_file:
-#         writer.write(output_file)
-
-#     # 删除原文件
-#     os.remove(input_pdf_path)
-#     # 重命名输出文件为原输入文件名称
-#     os.rename(output_pdf_path, input_pdf_path)
-#     # print(f"已成功添加中文页眉和页脚，并覆盖保存为 {input_pdf_path}")
-
 def add_header_footer(input_pdf_path, output_pdf_path, font_name="MyChineseFont"):
     """
     为PDF文件添加中文页眉和页脚, 支持Windows和macOS系统
