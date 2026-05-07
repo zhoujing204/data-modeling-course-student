@@ -1,20 +1,32 @@
 from flask import Flask
+from threading import Thread
+import logging
+import os
+from contextlib import redirect_stdout, redirect_stderr
 
 app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return """
-    <h1>Hello, Flask!</h1>
-    <p>This is a simple Flask web app.</p>
-    """
+    return "Hello from quiz1!"
 
-@app.route("/about")
-def about():
-    return """
-    <h1>About</h1>
-    <p>This is the about page.</p>
-    """
+def run_server(host="127.0.0.1", port=5000):
+    url = f"http://{host}:{port}"
 
-if __name__ == "__main__":
-    app.run(debug=True)
+    logging.getLogger("werkzeug").disabled = True
+    app.logger.disabled = True
+
+    def run_app():
+        with open(os.devnull, "w") as devnull:
+            with redirect_stdout(devnull), redirect_stderr(devnull):
+                app.run(
+                    host=host,
+                    port=port,
+                    debug=False,
+                    use_reloader=False
+                )
+
+    thread = Thread(target=run_app, daemon=True)
+    thread.start()
+
+    return url
