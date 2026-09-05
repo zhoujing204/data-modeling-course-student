@@ -1,5 +1,6 @@
 import os
 import platform
+import uuid
 import nbformat
 from nbconvert.exporters.webpdf import WebPDFExporter
 from traitlets.config import Config
@@ -8,85 +9,96 @@ from tqdm import tqdm
 import threading
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfbase.ttfonts import TTFont
 from io import BytesIO
 
 
-def add_header_footer(input_pdf_path, output_pdf_path, font_name="MyChineseFont"):
-    def get_chinese_font_path():
-        system = platform.system()
+def _chinese_font_paths():
+    """Return likely Chinese font locations for the current operating system."""
+    system = platform.system()
 
-        if system == "Windows":
-            font_paths = [
-                r"C:\\Windows\\Fonts\\simhei.ttf",
-                r"C:\\Windows\\Fonts\\simkai.ttf",
-                r"C:\\Windows\\Fonts\\simsun.ttc",
-                r"C:\\Windows\\Fonts\\msyh.ttc",
-            ]
-        elif system == "Darwin":
-            font_paths = [
-                os.path.expanduser("~/Library/Fonts/SimHei.ttf"),
-                os.path.expanduser("~/Library/Fonts/SimSun.ttf"),
-                os.path.expanduser("~/Library/Fonts/KaiTi.ttf"),
-                os.path.expanduser("~/Library/Fonts/Arial Unicode MS.ttf"),
-                "/Library/Fonts/Arial Unicode MS.ttf",
-                "/Library/Fonts/Microsoft/SimHei.ttf",
-                "/Library/Fonts/Microsoft/SimSun.ttf",
-                "/System/Library/Fonts/PingFang.ttc",
-            ]
-        else:
-            font_paths = [
-                "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
-                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-            ]
+    if system == "Windows":
+        font_dir = os.path.join(os.environ.get("WINDIR", r"C:\Windows"), "Fonts")
+        return [
+            os.path.join(font_dir, "msyh.ttc"),
+            os.path.join(font_dir, "msyhbd.ttc"),
+            os.path.join(font_dir, "simhei.ttf"),
+            os.path.join(font_dir, "simkai.ttf"),
+            os.path.join(font_dir, "simsun.ttc"),
+        ]
+    if system == "Darwin":
+        return [
+            os.path.expanduser("~/Library/Fonts/Arial Unicode MS.ttf"),
+            os.path.expanduser("~/Library/Fonts/SimHei.ttf"),
+            os.path.expanduser("~/Library/Fonts/SimSun.ttf"),
+            "/Library/Fonts/Arial Unicode MS.ttf",
+            "/Library/Fonts/Microsoft/SimHei.ttf",
+            "/Library/Fonts/Microsoft/SimSun.ttf",
+            "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
+            "/System/Library/Fonts/Supplemental/Songti.ttc",
+            "/System/Library/Fonts/STHeiti Light.ttc",
+            "/System/Library/Fonts/STHeiti Medium.ttc",
+        ]
+    return [
+        "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc",
+        "/usr/share/fonts/truetype/wqy/wqy-zenhei.ttc",
+        "/usr/share/fonts/truetype/arphic/uming.ttc",
+    ]
 
-        for font_path in font_paths:
-            if os.path.exists(font_path):
-                return font_path
-        return None
 
-    def test_font_registration(font_path, font_name):
+def _register_chinese_font(font_name="MyChineseFont"):
+    """Register an installed Chinese font, with a portable CJK fallback."""
+    for font_path in _chinese_font_paths():
+        if not os.path.isfile(font_path):
+            continue
         try:
             pdfmetrics.registerFont(TTFont(font_name, font_path))
-            return True
+            return font_name
         except Exception:
-            return False
+            # Some TTC files use PostScript outlines that ReportLab cannot load.
+            # Continue looking instead of silently rendering Chinese as squares.
+            continue
+
+    cid_font_name = "STSong-Light"
+    try:
+        if cid_font_name not in pdfmetrics.getRegisteredFontNames():
+            pdfmetrics.registerFont(UnicodeCIDFont(cid_font_name))
+        return cid_font_name
+    except Exception as error:
+        raise RuntimeError(
+            "No usable Chinese PDF font was found. Install a Chinese TrueType font."
+        ) from error
+
+
+def add_header_footer(input_pdf_path, output_pdf_path, font_name="MyChineseFont"):
 
     header_text = "计算机科学与工程学院数学建模实验报告"
     footer_text = "页码: 第 {} 页 / 共 {} 页"
 
-    font_path = get_chinese_font_path()
-    use_chinese_font = False
-
-    if font_path:
-        use_chinese_font = test_font_registration(font_path, font_name)
+    chinese_font = _register_chinese_font(font_name)
 
     reader = PdfReader(input_pdf_path)
     writer = PdfWriter()
 
     for page_num in range(len(reader.pages)):
         page = reader.pages[page_num]
+        page_width = float(page.mediabox.width)
+        page_height = float(page.mediabox.height)
         packet = BytesIO()
-        can = canvas.Canvas(packet, pagesize=letter)
+        can = canvas.Canvas(packet, pagesize=(page_width, page_height))
 
-        if use_chinese_font:
-            can.setFont(font_name, 10)
-        else:
-            can.setFont("Helvetica", 10)
+        can.setFont(chinese_font, 10)
 
-        can.drawCentredString(letter[0] / 2, 770, header_text)
+        can.drawCentredString(page_width / 2, page_height - 22, header_text)
         can.setLineWidth(1)
-        can.line(50, 760, letter[0] - 50, 760)
+        can.line(50, page_height - 32, page_width - 50, page_height - 32)
 
-        if use_chinese_font:
-            can.setFont(font_name, 8)
-        else:
-            can.setFont("Helvetica", 8)
+        can.setFont(chinese_font, 8)
 
         footer_str = footer_text.format(page_num + 1, len(reader.pages))
-        can.drawCentredString(letter[0] / 2, 20, footer_str)
+        can.drawCentredString(page_width / 2, 20, footer_str)
 
         can.save()
         packet.seek(0)
@@ -97,8 +109,7 @@ def add_header_footer(input_pdf_path, output_pdf_path, font_name="MyChineseFont"
     with open(output_pdf_path, 'wb') as output_file:
         writer.write(output_file)
 
-    os.remove(input_pdf_path)
-    os.rename(output_pdf_path, input_pdf_path)
+    os.replace(output_pdf_path, input_pdf_path)
 
 
 def convert_notebook_to_webpdf(notebook_path, output_pdf):
@@ -158,7 +169,12 @@ def convert_notebook_to_webpdf(notebook_path, output_pdf):
     pbar.close()
 
     if conversion_success["ok"] and os.path.exists(output_pdf):
-        add_header_footer(output_pdf, "temp.pdf")
+        output_path = os.path.abspath(output_pdf)
+        temporary_pdf = os.path.join(
+            os.path.dirname(output_path),
+            f".{os.path.basename(output_path)}.{uuid.uuid4().hex}.tmp.pdf",
+        )
+        add_header_footer(output_path, temporary_pdf)
         print(f"\n成功生成报告文件: {output_pdf}")
     else:
         print(f"\n转换失败: {notebook_path}")
