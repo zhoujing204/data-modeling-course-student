@@ -2,6 +2,29 @@ import json
 import re
 from bs4 import BeautifulSoup
 
+
+EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
+
+
+def is_valid_email(value):
+    """Return whether a student supplied a usable email address."""
+    if not isinstance(value, str):
+        return False
+    email = value.strip()
+    return (
+        0 < len(email) <= 254
+        and EMAIL_RE.fullmatch(email) is not None
+        and not any(ord(char) < 32 for char in email)
+    )
+
+
+def normalize_email(value):
+    """Validate an email address and lowercase its domain for comparison."""
+    if not is_valid_email(value):
+        raise ValueError("Email地址无效")
+    local, domain = value.strip().rsplit("@", 1)
+    return f"{local}@{domain.casefold()}"
+
 def clean_string(s):
     if not s:
         return s

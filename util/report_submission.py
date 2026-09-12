@@ -12,8 +12,10 @@ import requests
 
 try:
     from .server_health import DEFAULT_CONFIG_PATH, _load_server_url
+    from .notebook_info_extractor import is_valid_email, normalize_email
 except ImportError:  # Support importing after adding ``util`` to sys.path.
     from server_health import DEFAULT_CONFIG_PATH, _load_server_url
+    from notebook_info_extractor import is_valid_email, normalize_email
 
 
 EXPERIMENTS = {
@@ -93,7 +95,7 @@ def submit_pdf_report(
     if not pdf_data.startswith(b"%PDF-") or b"%%EOF" not in pdf_data:
         raise ValueError(f"Report is not a structurally valid PDF: {path}")
 
-    required_fields = ("class_id", "student_id", "name")
+    required_fields = ("class_id", "student_id", "name", "email")
     missing = [field for field in required_fields if not student_info.get(field)]
     if missing:
         raise ValueError(f"Missing student information: {', '.join(missing)}")
@@ -101,6 +103,12 @@ def submit_pdf_report(
     class_id = str(student_info["class_id"]).strip()
     student_id = str(student_info["student_id"]).strip()
     student_name = str(student_info["name"]).strip()
+    email = str(student_info["email"]).strip()
+    if not is_valid_email(email):
+        raise ValueError(
+            "Email地址无效，请在Notebook顶部的学生信息表中重新输入有效地址。"
+        )
+    email = normalize_email(email)
     for field_name, value in {
         "class_id": class_id,
         "student_id": student_id,
@@ -124,6 +132,10 @@ def submit_pdf_report(
         server_info = _response_payload(server_info_response)
         if not isinstance(server_info, dict):
             raise ReportSubmissionError("Server returned invalid server information")
+        if server_info.get("submission_email_supported") is not True:
+            raise ReportSubmissionError(
+                "LabDrop服务器尚未启用学生邮箱更新功能，请重启或升级服务器后重试。"
+            )
 
         selected_course_run = course_run_id or server_info.get("active_course_run_id")
         if not isinstance(selected_course_run, str) or not selected_course_run:
@@ -143,6 +155,7 @@ def submit_pdf_report(
             "class_id": class_id,
             "student_id": student_id,
             "student_name": student_name,
+            "email": email,
             "experiment_id": experiment_id,
         }
         idempotency_material = json.dumps(
@@ -176,6 +189,10 @@ def submit_pdf_report(
     receipt = _response_payload(response)
     if not isinstance(receipt, dict) or not receipt.get("submission_id"):
         raise ReportSubmissionError("Server returned an invalid submission receipt")
+    if receipt.get("student_email") != email:
+        raise ReportSubmissionError(
+            "报告已被服务器接收，但学生邮箱未确认更新；请联系教师检查服务器版本。"
+        )
 
     print(
         "报告提交成功: "
