@@ -1,0 +1,9 @@
+product_id,product_name,category,unit_price,status
+P001,Wireless Mouse,Electronics,89,active
+P002,Mechanical Keyboard,Electronics,329,active
+P003,USB-C Hub,Electronics,199,active
+P004,Notebook,Stationery,18,active
+P005,Gel Pen Set,Stationery,25,active
+P006,Desk Lamp,Home,159,inactive
+P007,Water Bottle,Home,79,active
+P008,Laptop Stand,Electronics,219,active

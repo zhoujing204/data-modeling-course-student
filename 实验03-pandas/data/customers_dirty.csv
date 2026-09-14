@@ -1,0 +1,9 @@
+customer_id,customer_name,city,segment,email
+C001," Alice Zhang "," shanghai ",Student," ALICE@EXAMPLE.COM "
+C002,Bob Li,BEIJING,teacher,bob@example.com
+C003,Chen Wang,SHANGHAI,student,
+C004,Diana Liu,guangzhou,corporate,old-diana@example.com
+C004," Diana Liu ",Guangzhou,Corporate,diana@example.com
+C005,Evan Zhou,,student,evan@example.com
+C006,Fang Wu,beijing,Teacher," FANG@EXAMPLE.COM "
+C007,Grace He,guangzhou,corporate,grace@example.com

@@ -1,5 +1,4 @@
 import numpy as np
-import pandas as pd
 import re
 import pytest
 from base_test_suite import BaseTestSuite
@@ -480,109 +479,6 @@ class TestSuite2(BaseTestSuite):
 
             self.test_results[test_name] = 1
             print(colored(f"恭喜你通过了习题7 {test_name} 测试。{sum(self.test_results.values())}/{len(self.test_results)}", "green"))
-
-        except Exception as e:
-            print(colored(f"测试失败 {test_name}: {str(e)}", "red"))
-
-    def test_big_countries(self, target):
-        """测试习题8"""
-        test_name = "test_big_countries"
-        self.test_results[test_name] = 0
-        self.test_targets[test_name] = target
-
-        try:
-            # Input DataFrame
-            data = {
-                "name": ["Afghanistan", "Albania", "Algeria", "Andorra", "Angola"],
-                "continent": ["Asia", "Europe", "Africa", "Europe", "Africa"],
-                "area": [652230, 28748, 2381741, 468, 1246700],
-                "population": [25500100, 2831741, 37100000, 78115, 20609294],
-                "gdp": [20343000000, 12960000000, 188681000000, 3712000000, 100990000000]
-            }
-            df = pd.DataFrame(data)
-
-            # Expected output DataFrame
-            expected_data = {
-                "name": ["Afghanistan", "Algeria"],
-                "population": [25500100, 37100000],
-                "area": [652230, 2381741]
-            }
-            expected_df = pd.DataFrame(expected_data)
-
-            # Call the target function
-            result_df = target(df)
-
-            # Assertions
-            # Check if result and expected tables are identical
-            pd.testing.assert_frame_equal(
-                result_df.sort_values(by=['name']).reset_index(drop=True),
-                expected_df.sort_values(by=['name']).reset_index(drop=True),
-            )
-
-            # Additional Test 1: No big countries in the input
-            data = {
-                "name": ["Country1", "Country2", "Country3"],
-                "continent": ["Asia", "Europe", "Africa"],
-                "area": [2000000, 50000, 450000],
-                "population": [10000000, 2000000, 1500000],
-                "gdp": [50000000000, 1000000000, 2000000000]
-            }
-            df = pd.DataFrame(data)
-
-            # Additional Test 2: All countries qualify as big
-            data = {
-                "name": ["CountryA", "CountryB", "CountryC"],
-                "continent": ["Asia", "Europe", "Africa"],
-                "area": [5000000, 4000000, 6000000],
-                "population": [30000000, 50000000, 80000000],
-                "gdp": [70000000000, 800000000000, 1500000000000]
-            }
-            df = pd.DataFrame(data)
-
-            # Expected output: All countries should appear
-            expected_df = pd.DataFrame({
-                "name": ["CountryA", "CountryB", "CountryC"],
-                "population": [30000000, 50000000, 80000000],
-                "area": [5000000, 4000000, 6000000]
-            })
-
-            result_df = target(df)
-
-            pd.testing.assert_frame_equal(
-                result_df.sort_values(by=["name"]).reset_index(drop=True),
-                expected_df.sort_values(by=["name"]).reset_index(drop=True),
-            )
-
-            # Additional Test 3: Mixed qualification with different criteria
-            data = {
-                "name": ["CountryX", "CountryY", "CountryZ"],
-                "continent": ["Asia", "Europe", "Africa"],
-                "area": [2500000, 4000000, 500000],
-                "population": [13000000, 20000000, 30000000],  # CountryZ qualifies based on population
-                "gdp": [5000000000, 4000000000, 8000000000]
-            }
-            df = pd.DataFrame(data)
-
-            # Expected output: Only CountryY and CountryZ should qualify
-            expected_df = pd.DataFrame({
-                "name": ["CountryY", "CountryZ"],
-                "population": [20000000, 30000000],
-                "area": [4000000, 500000]
-            })
-
-            result_df = target(df)
-
-            pd.testing.assert_frame_equal(
-                result_df.sort_values(by=["name"]).reset_index(drop=True),
-                expected_df.sort_values(by=["name"]).reset_index(drop=True),
-            )
-
-            # Additional Test: Check that there are no loops in the target function
-            self._test_no_loops(target)
-
-            # Test passed
-            self.test_results[test_name] = 1
-            print(colored(f"恭喜你通过了习题8 {test_name} 测试。{sum(self.test_results.values())}/{len(self.test_results)}", "green"))
 
         except Exception as e:
             print(colored(f"测试失败 {test_name}: {str(e)}", "red"))

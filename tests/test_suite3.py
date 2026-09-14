@@ -1,221 +1,256 @@
-import inspect
+import ast
+import textwrap
+
+import pandas as pd
+
 from base_test_suite import BaseTestSuite
 from termcolor import colored
 
+
 class TestSuite3(BaseTestSuite):
-    """实验3：线性规划与整数线性规划的合并测试套件"""
+    """实验3：pandas 数据处理测试套件。"""
 
-    def test_solve_machine_production_lp(self, target):
-        """测试习题1"""
-        test_name = "test_solve_machine_production_lp"
+    def _assert_no_explicit_loops(self, target):
+        """要求习题使用 pandas 向量化操作，不使用显式 for/while 循环。"""
+        source = self.get_function_source(target.__name__)
+        if not source:
+            return
+        tree = ast.parse(textwrap.dedent(source))
+        loop_nodes = (ast.For, ast.AsyncFor, ast.While)
+        assert not any(isinstance(node, loop_nodes) for node in ast.walk(tree)), \
+            "请使用 pandas 向量化操作，不要使用 for 或 while 循环"
+
+    def _run_test(self, test_name, target, assertions):
         self.test_results[test_name] = 0
         self.test_targets[test_name] = target
-
         try:
-            # 调用目标函数并检查返回结果
-            result = target()
-
-            # 检查返回的结果是否包含所有必需的键
-            expected_keys = {"status", "甲机床生产数量", "乙机床生产数量", "总利润"}
-            assert expected_keys.issubset(result.keys()), f"返回结果应包含键：{expected_keys}"
-
-            # 检查最优解状态：状态应为 Optimal
-            assert result["status"] == "Optimal", "期望的状态应为 Optimal"
-
-            # 检查最优生产数量和总利润（允许细微浮点误差）
-            assert abs(result["甲机床生产数量"] - 2) < 1e-6, "甲机床生产数量计算错误"
-            assert abs(result["乙机床生产数量"] - 6) < 1e-6, "乙机床生产数量计算错误"
-            assert abs(result["总利润"] - 26000) < 1e-6, "总利润计算错误"
-
+            assertions()
+            self._assert_no_explicit_loops(target)
             self.test_results[test_name] = 1
-            print(colored(f"恭喜你通过了习题1 {test_name} 测试。{sum(self.test_results.values())}/{len(self.test_results)}", "green"))
+            passed = sum(self.test_results.values())
+            total = len(self.test_results)
+            print(colored(f"恭喜你通过了 {test_name} 测试。{passed}/{total}", "green"))
+        except Exception as exc:
+            print(colored(f"测试失败 {test_name}: {exc}", "red"))
 
-        except Exception as e:
-            print(colored(f"测试失败 {test_name}: {str(e)}", "red"))
+    def test_select_large_discount_orders(self, target):
+        """测试习题1：订单筛选、索引和复合排序。"""
+        test_name = "test_select_large_discount_orders"
 
-    def test_formulate_lp_problem(self, target):
-        """测试习题2"""
-        test_name = "test_formulate_lp_problem"
-        self.test_results[test_name] = 0
-        self.test_targets[test_name] = target
+        def assertions():
+            orders = pd.DataFrame({
+                "order_id": ["O4", "O2", "O3", "O1", "O5"],
+                "order_date": ["2026-03-02", "2026-03-01", "2026-03-03", "2026-03-04", "2026-03-05"],
+                "customer_id": ["C2", "C1", "C3", "C1", "C4"],
+                "product_id": ["P2", "P1", "P3", "P4", "P5"],
+                "quantity": [5, 5, 3, 2, 4],
+                "discount": [0.15, 0.15, 0.20, 0.25, None],
+            })
+            original = orders.copy(deep=True)
+            result = target(orders, min_quantity=3, min_discount=0.15)
+            expected = pd.DataFrame(
+                {
+                    "order_date": ["2026-03-01", "2026-03-02", "2026-03-03"],
+                    "customer_id": ["C1", "C2", "C3"],
+                    "product_id": ["P1", "P2", "P3"],
+                    "quantity": [5, 5, 3],
+                    "discount": [0.15, 0.15, 0.20],
+                },
+                index=pd.Index(["O2", "O4", "O3"], name="order_id"),
+            )
+            pd.testing.assert_frame_equal(result, expected)
+            pd.testing.assert_frame_equal(orders, original)
 
-        try:
-            m = 4
-            n = 3
-            list_c = [1, 1, 1]
-            list_a = [ [2, 1, 2], [1, 0, 0], [0, 1, 0], [0, 0, -1]]
-            list_b = [5, 7, 9, 4]
-            (is_feas, is_bnded, sols) = target(m, n, list_c, list_a, list_b)
+        self._run_test(test_name, target, assertions)
 
-            assert is_feas, '这个线性规划问题是有解的 -- 你的代码返回结果是无解'
-            assert is_bnded, '这个线性规划问题是有界的 -- 你的代码返回结果是无界的'
-            # print("测试用例的解：",sols)
-            assert abs(sols[0] - 2.0) <= 1E-04 , 'x0 must be 2.0'
-            assert abs(sols[1] - 9.0) <= 1E-04 , 'x1 must be 9.0'
-            assert abs(sols[2] + 4.0) <= 1E-04 , 'x2 must be -4.0'
+    def test_clean_customer_records(self, target):
+        """测试习题2：客户缺失值、重复值和字符串类型。"""
+        test_name = "test_clean_customer_records"
 
-            self.test_results[test_name] = 1
-            print(colored(f"恭喜你通过了习题2 {test_name} 测试。{sum(self.test_results.values())}/{len(self.test_results)}", "green"))
+        def assertions():
+            customers = pd.DataFrame({
+                "customer_id": ["C2", "C1", "C2", "C3"],
+                "customer_name": ["Bob Li", "Alice Zhang", "Bob Revised", "Chen Wu"],
+                "city": ["Beijing", "Shanghai", "Shenzhen", None],
+                "segment": ["teacher", "student", "corporate", "student"],
+                "email": ["old@example.com", None, "new@example.com", None],
+            })
+            original = customers.copy(deep=True)
+            result = target(customers)
+            expected = pd.DataFrame({
+                "customer_id": ["C3", "C2", "C1"],
+                "customer_name": ["Chen Wu", "Bob Li", "Alice Zhang"],
+                "city": [None, "Beijing", "Shanghai"],
+                "segment": pd.Series(["student", "teacher", "student"], dtype="string"),
+                "email": ["unknown", "old@example.com", "unknown"],
+            })
+            pd.testing.assert_frame_equal(result, expected, check_dtype=True)
+            pd.testing.assert_frame_equal(customers, original)
 
-        except Exception as e:
-            print(colored(f"测试失败 {test_name}: {str(e)}", "red"))
+        self._run_test(test_name, target, assertions)
 
-    def test_solve_investment_problem(self, target):
-        """测试习题3"""
-        test_name = "test_solve_investment_problem"
-        self.test_results[test_name] = 0
-        self.test_targets[test_name] = target
+    def test_standardize_product_text(self, target):
+        """测试习题3：商品文本字段标准化。"""
+        test_name = "test_standardize_product_text"
 
-        try:
-            result = target()
-            assert result["status"] == "Optimal", "期望的状态应为 Optimal"
-            assert abs(result["profit"] - 1098.59) <= 0.1, "目标函数计算错误"
-            assert abs(result["x1"] - 33.83) <= 0.1, "x1 计算错误"
-            assert abs(result["x2"] - 0.0) <= 0.1, "x2 计算错误"
-            assert abs(result["x3"] - 0.0) <= 0.1, "x3 计算错误"
-            assert abs(result["x4"] - 104.45) <= 0.1, "x4 计算错误"
-            assert abs(result["x5"] - 32.05) <= 0.1, "x5 计算错误"
-            assert abs(result["x6"] - 0.0) <= 0.1, "x6 计算错误"
+        def assertions():
+            products = pd.DataFrame({
+                "product_id": ["P2", "P1", "P2", "P3"],
+                "product_name": [" desk lamp ", "wireless MOUSE", "old lamp", " USB-C hub "],
+                "category": [" Home ", "ELECTRONICS", "home", " Electronics "],
+                "unit_price": [80.0, 120.0, 75.0, 60.0],
+                "status": [" active ", "INACTIVE", "inactive", " Active "],
+            })
+            original = products.copy(deep=True)
+            result = target(products)
+            expected = pd.DataFrame({
+                "product_id": ["P2", "P3", "P1"],
+                "product_name": ["Desk Lamp", "Usb-C Hub", "Wireless Mouse"],
+                "category": ["home", "electronics", "electronics"],
+                "unit_price": [80.0, 60.0, 120.0],
+                "status": ["ACTIVE", "ACTIVE", "INACTIVE"],
+            })
+            pd.testing.assert_frame_equal(result, expected)
+            pd.testing.assert_frame_equal(products, original)
 
-            self.test_results[test_name] = 1
-            print(colored(f"恭喜你通过了习题3 {test_name} 测试。{sum(self.test_results.values())}/{len(self.test_results)}", "green"))
+        self._run_test(test_name, target, assertions)
 
-        except Exception as e:
-            print(colored(f"测试失败 {test_name}: {str(e)}", "red"))
+    def test_add_order_size_band(self, target):
+        """测试习题4：订单数量分箱和分类类型。"""
+        test_name = "test_add_order_size_band"
 
-    # 整数线性规划习题（原实验4）
+        def assertions():
+            orders = pd.DataFrame({
+                "order_id": ["O1", "O2", "O3", "O4", "O5"],
+                "quantity": [0.5, 1.0, 1.01, 3.0, 3.01],
+            })
+            original = orders.copy(deep=True)
+            result = target(orders)
+            expected_values = ["单件", "单件", "小批", "小批", "大批"]
+            assert result.columns.tolist() == ["order_id", "quantity", "order_size"]
+            assert result["order_size"].astype("string").tolist() == expected_values
+            assert isinstance(result["order_size"].dtype, pd.CategoricalDtype)
+            assert result["order_size"].cat.ordered
+            assert result["order_size"].cat.categories.tolist() == ["单件", "小批", "大批"]
+            pd.testing.assert_frame_equal(orders, original)
 
-    def test_plan_invite_list(self, target):
-        """测试习题6：派对邀请名单规划问题"""
-        test_name = "test_plan_invite_list"
-        self.test_results[test_name] = 0
-        self.test_targets[test_name] = target
+        self._run_test(test_name, target, assertions)
 
-        # 测试用例1
-        def inner_test_case_1():
-            n = 20
-            m = 12
-            T_lists = [[1, 5, 12, 18, 19], [2, 3, 4, 6, 7],
-                       [1, 2, 4, 7, 8, 9, 10, 11, 12, 14, 16],
-                       [1, 3, 4, 5, 6, 13, 15, 17, 18, 19],
-                       [1, 5, 7, 8, 9, 19]]
-            G_lists = [[1, 5], [5, 19], [4, 7], [4, 12], [4, 19],
-                       [4, 18], [3, 4, 15, 19], [4, 7, 18, 2]]
-            pp_scores = [1, 2, 2, 1, 4, 5, 1, 2, 3, 4, 5, 1, 2,
-                        3.5, 1, 0.6, 0, 1, 8, 8]
+    def test_build_stock_sales_detail(self, target):
+        """测试习题5：库存销售连接、基数校验和派生列。"""
+        test_name = "test_build_stock_sales_detail"
 
-            status, result, optimal_pp_score = target(n, m, T_lists, G_lists, pp_scores)
-            expected_result = [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0,
-                              0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0,
-                              0.0, 0.0]
-            expected_pp_score = 18.1
+        def assertions():
+            inventory = pd.DataFrame({
+                "product_id": ["P1", "P2", "P3"],
+                "warehouse": ["Shanghai", "Shanghai", "Shanghai"],
+                "stock": [10, 8, 5],
+            })
+            monthly_sales = pd.DataFrame({
+                "product_id": ["P1", "P3", "P4"],
+                "2026-02": [90, 70, 30],
+                "2026-03": [100, 75, 40],
+            })
+            originals = [inventory.copy(deep=True), monthly_sales.copy(deep=True)]
+            result = target(inventory, monthly_sales)
+            expected = pd.DataFrame({
+                "product_id": ["P3", "P1"],
+                "warehouse": ["Shanghai", "Shanghai"],
+                "stock": [5, 10],
+                "2026-03": [75, 100],
+                "sales_per_stock": [15.0, 10.0],
+            })
+            pd.testing.assert_frame_equal(result, expected)
+            pd.testing.assert_frame_equal(inventory, originals[0])
+            pd.testing.assert_frame_equal(monthly_sales, originals[1])
 
-            assert status == 1, "测试用例1状态应为1"
-            assert len(result) == n, f"结果长度应为{n}"
-            assert all(abs(a-b) < 1e-6 for a, b in zip(result, expected_result)), "测试用例1结果不符合预期"
-            assert abs(optimal_pp_score - expected_pp_score) < 1e-6, "目标函数结果错误"
+            duplicated_sales = pd.concat(
+                [monthly_sales, monthly_sales.iloc[[0]]], ignore_index=True
+            )
+            try:
+                target(inventory, duplicated_sales)
+            except pd.errors.MergeError:
+                pass
+            else:
+                raise AssertionError("连接必须使用 validate='one_to_one' 检查重复键")
 
-        # 测试用例2
-        def inner_test_case_2():
-            from random import seed, randint
-            seed(1)
-            n = 16
-            m = 8
-            num_teams = 4
-            num_grievances = 3
-            T_lists = [list(set([randint(0, n-1) for k in range(randint(3,10))]))
-                      for i in range(num_teams)]
-            G_lists = [list(set([randint(0, n-1) for k in range(randint(2,4))]))
-                      for i in range(num_grievances)]
-            pp_scores = [randint(0, 8) for i in range(n)]
+        self._run_test(test_name, target, assertions)
 
-            status, result, optimal_pp_score = target(n, m, T_lists, G_lists, pp_scores)
-            expected_result = [0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0,
-                              0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 1.0]
-            expected_pp_score = 29
+    def test_summarize_customer_orders(self, target):
+        """测试习题6：按客户分组和命名聚合。"""
+        test_name = "test_summarize_customer_orders"
 
-            assert status == 1, "测试用例2状态应为1"
-            assert len(result) == n, f"结果长度应为{n}"
-            assert all(abs(a-b) < 1e-6 for a, b in zip(result, expected_result)), "测试用例2结果不符合预期"
-            assert abs(optimal_pp_score - expected_pp_score) < 1e-6, "目标函数结果错误"
+        def assertions():
+            orders = pd.DataFrame({
+                "order_id": ["O1", "O1", "O2", "O3", "O4"],
+                "customer_id": ["C1", "C1", "C1", "C2", "C3"],
+                "product_id": ["P1", "P2", "P2", "P1", "P3"],
+                "quantity": [2, 1, 3, 4, 1],
+                "discount": [0.0, 0.1, 0.2, 0.15, 0.05],
+            })
+            original = orders.copy(deep=True)
+            result = target(orders)
+            expected = pd.DataFrame({
+                "customer_id": ["C1", "C2", "C3"],
+                "order_count": [2, 1, 1],
+                "product_count": [2, 1, 1],
+                "total_quantity": [6, 4, 1],
+                "average_discount": [0.1, 0.15, 0.05],
+            })
+            pd.testing.assert_frame_equal(result, expected)
+            pd.testing.assert_frame_equal(orders, original)
 
-        # 执行测试用例
-        try:
-            inner_test_case_1()
-            inner_test_case_2()
-            self.test_results[test_name] = 1
-            print(colored(f"习题6通过 {test_name} 测试。{sum(self.test_results.values())}/{len(self.test_results)}", "green"))
+        self._run_test(test_name, target, assertions)
 
-        except Exception as e:
-            print(colored(f"测试失败 {test_name}: {str(e)}", "red"))
+    def test_summarize_order_batches(self, target):
+        """测试习题7：纵向拼接订单批次并汇总。"""
+        test_name = "test_summarize_order_batches"
 
-    def test_encode_and_solve_three_coloring(self, target):
-        """测试习题7：三色图着色问题"""
-        test_name = "test_encode_and_solve_three_coloring"
-        self.test_results[test_name] = 0
-        self.test_targets[test_name] = target
+        def assertions():
+            first_batch = pd.DataFrame({
+                "order_id": ["O1", "O2"],
+                "customer_id": ["C1", "C2"],
+                "quantity": [2, 5],
+            })
+            second_batch = pd.DataFrame({
+                "order_id": ["O3", "O4"],
+                "customer_id": ["C1", "C3"],
+                "quantity": [2, 2],
+            })
+            originals = [first_batch.copy(deep=True), second_batch.copy(deep=True)]
+            result = target(first_batch, second_batch)
+            expected = pd.DataFrame({
+                "customer_id": ["C2", "C1", "C3"],
+                "order_count": [1, 2, 1],
+                "total_quantity": [5, 4, 2],
+            })
+            pd.testing.assert_frame_equal(result, expected)
+            pd.testing.assert_frame_equal(first_batch, originals[0])
+            pd.testing.assert_frame_equal(second_batch, originals[1])
 
-        def check_three_color_assign(n, edge_list, color_assign):
-            assert len(color_assign) == n, f'Error: 你的颜色分配列表的长度为{len(color_assign)}, 应该等于节点数{n}'
-            assert (all( col == 'r' or col == 'b' or col == 'g' for col in color_assign)),\
-                   f'错误: 颜色分配列表中的值应该为r, g, 或者b. 你的代码返回的是{color_assign}'
-            for (i, j) in edge_list:
-                ci = color_assign[i]
-                cj = color_assign[j]
-                assert ci != cj, f' 错误: 边 ({i,j}) 有相同的颜色 ({ci, cj})'
+        self._run_test(test_name, target, assertions)
 
-        try:
-            # 测试用例1
-            n = 5
-            edge_list = [(1,2), (1, 3), (1,4), (2, 4), (3,4)]
-            # 调用目标函数并检查返回结果
-            (flag, color_assign) = target(n, edge_list)
-            assert flag == True, "错误： 这个图可以用三种颜色覆盖, 应该返回True"
-            check_three_color_assign(n, edge_list, color_assign)
+    def test_reshape_product_attributes(self, target):
+        """测试习题8：商品属性宽表转长表。"""
+        test_name = "test_reshape_product_attributes"
 
-            # 测试用例2
-            n = 5
-            edge_list = [(1,2), (1, 3), (1,4), (2,3), (2, 4), (3,4)]
-            (flag, color_assign) = target(n, edge_list)
-            assert flag == False, "错误： 这个图不能用三种颜色覆盖, 应该返回False"
+        def assertions():
+            products = pd.DataFrame({
+                "product_id": ["P1", "P2"],
+                "product_name": ["Mouse", "Lamp"],
+                "category": ["Electronics", "Home"],
+                "unit_price": [10.0, 20.0],
+                "status": ["active", "inactive"],
+            })
+            original = products.copy(deep=True)
+            result = target(products)
+            expected = pd.DataFrame({
+                "product_id": ["P1", "P1", "P1", "P2", "P2", "P2"],
+                "unit_price": [10.0, 10.0, 10.0, 20.0, 20.0, 20.0],
+                "attribute": ["category", "product_name", "status"] * 2,
+                "value": ["Electronics", "Mouse", "active", "Home", "Lamp", "inactive"],
+            })
+            pd.testing.assert_frame_equal(result, expected)
+            pd.testing.assert_frame_equal(products, original)
 
-            # 测试用例3
-            n = 10
-            edge_list = [ (1, 5), (1, 7), (1, 9), (2, 4), (2, 5), (2, 9), (3, 4), (3, 6), (3,7), (3,8), (4, 5), (4,6), (4,7), (4,9),(5,6), (5,7),(6,8),(7,9),(8,9)]
-            (flag, color_assign) = target(n, edge_list)
-            assert flag == True, "错误： 这个图可以用三种颜色覆盖, 应该返回True"
-            check_three_color_assign(n, edge_list, color_assign)
-
-            self.test_results[test_name] = 1
-            print(colored(f"习题7通过 {test_name} 测试。{sum(self.test_results.values())}/{len(self.test_results)}", "green"))
-
-
-        except Exception as e:
-            print(colored(f"测试失败 {test_name}: {str(e)}", "red"))
-
-
-    def test_solve_worker_assignment_lp(self, target):
-        """测试习题5：工人指派问题"""
-        test_name= inspect.currentframe().f_code.co_name
-        self.test_results[test_name] = 0
-        self.test_targets[test_name] = target
-
-        try:
-        # 调用目标函数并检查返回结果
-            result = target()
-
-            # 检查返回的结果是否包含所有必需的键
-            expected_keys = {"status", "total_time"}
-            assert expected_keys.issubset(result.keys()), f"返回结果应包含键：{expected_keys}"
-
-            # 检查最优解状态：状态应为 Optimal
-            assert result["status"] == "Optimal", "期望的状态应为 Optimal"
-
-            # 检查最优生产数量和总利润（允许细微浮点误差）
-            assert abs(result["total_time"] - 70) < 1e-6, "最小消耗时间计算错误"
-
-            self.test_results[test_name] = 1
-            print(colored(f"恭喜你通过了习题5 {test_name} 测试。{sum(self.test_results.values())}/{len(self.test_results)}", "green"))
-
-        except Exception as e:
-            print(colored(f"测试失败 {test_name}: {str(e)}", "red"))
+        self._run_test(test_name, target, assertions)
