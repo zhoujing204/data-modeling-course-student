@@ -20,6 +20,10 @@ import inspect
 class BaseTestSuite:
     """测试套件基类，提供通用的测试功能"""
 
+    # 默认规则：通过全部测试记为100分。子类可以覆盖这两个配置。
+    required_tests_for_100_points = None
+    maximum_grade = 100
+
     def __init__(self):
         self.test_results = {}
         self.test_targets = {}
@@ -135,6 +139,15 @@ class BaseTestSuite:
             else:
                 print(colored(f"警告: 找不到测试方法 {test_name}", "yellow"))
 
+    def calculate_grade(self, passed_tests, total_tests):
+        """根据测试通过数量和当前实验的评分配置计算成绩。"""
+        required_tests = self.required_tests_for_100_points or total_tests
+        if required_tests <= 0:
+            return 0
+
+        grade = round(passed_tests / required_tests * 100)
+        return min(grade, self.maximum_grade)
+
     def grade_all_tests(self, notebook_path):
         """
         从指定的 notebook 路径收集所有函数并进行测试评分
@@ -159,8 +172,13 @@ class BaseTestSuite:
             total_tests = len(self.test_results)
             print(colored(f"通过 {passed_tests} / {total_tests} 个测试", "green"))
 
-            stu_grade = round(passed_tests / total_tests * 100) if total_tests > 0 else 0
-            print(colored(f"自动评分成绩(百分制): {stu_grade}", "green"))
+            stu_grade = self.calculate_grade(passed_tests, total_tests)
+            grade_scale = (
+                "百分制"
+                if self.maximum_grade == 100
+                else f"最高{self.maximum_grade}分"
+            )
+            print(colored(f"自动评分成绩({grade_scale}): {stu_grade}", "green"))
             return stu_grade
         else:
             print("没有可用的测试结果")

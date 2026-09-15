@@ -11,6 +11,10 @@ import inspect
 class TestSuite5(BaseTestSuite):
     """实验5的测试套件"""
 
+    # 前六题为必做题：通过六个测试记100分；习题7为选做题，全部通过记117分。
+    required_tests_for_100_points = 6
+    maximum_grade = 117
+
     def test_get_columns_by_types(self, target):
         test_name = inspect.currentframe().f_code.co_name
         self.test_results[test_name] = 0

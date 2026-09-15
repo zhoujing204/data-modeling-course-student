@@ -5,6 +5,10 @@ from termcolor import colored
 class TestSuite4(BaseTestSuite):
     """实验4：线性规划与整数线性规划的合并测试套件"""
 
+    # 六个测试中通过三个记100分，全部通过记200分。
+    required_tests_for_100_points = 3
+    maximum_grade = 200
+
     def test_solve_machine_production_lp(self, target):
         """测试习题1"""
         test_name = "test_solve_machine_production_lp"
