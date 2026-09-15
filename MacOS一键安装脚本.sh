@@ -144,6 +144,7 @@ EXTENSIONS=(
     "formulahendry.code-runner"
     "ms-toolsai.data-wrangler"
     "yzhang.markdown-all-in-one"
+    "bierner.markdown-mermaid"
     "goessner.mdmath"
     "DavidAnson.vscode-markdownlint"
     "pdconsec.vscode-print"

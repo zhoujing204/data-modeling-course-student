@@ -180,7 +180,8 @@ REM 步骤 7: 安装 VS Code 插件
 REM ------------------------------------------------------------
 echo [步骤 7] 正在后台批量安装 VS Code 插件 (请稍候，这可能需要一两分钟)...
 
-set EXTENSIONS=ms-python.python ms-python.vscode-pylance ms-toolsai.jupyter formulahendry.code-runner ms-toolsai.data-wrangler yzhang.markdown-all-in-one goessner.mdmath DavidAnson.vscode-markdownlint pdconsec.vscode-print vscode-icons-team.vscode-icons tomoki1207.pdf streetsidesoftware.code-spell-checker
+setlocal EnableDelayedExpansion
+set EXTENSIONS=ms-python.python ms-python.vscode-pylance ms-toolsai.jupyter formulahendry.code-runner ms-toolsai.data-wrangler yzhang.markdown-all-in-one bierner.markdown-mermaid goessner.mdmath DavidAnson.vscode-markdownlint pdconsec.vscode-print vscode-icons-team.vscode-icons tomoki1207.pdf streetsidesoftware.code-spell-checker
 
 REM 将列表转换为多个 --install-extension 参数
 set "EXT_ARGS="
@@ -196,6 +197,7 @@ if errorlevel 1 (
 ) else (
     echo   [成功] 所有课程专属插件均已安装完毕！
 )
+endlocal
 echo.
 
 REM ------------------------------------------------------------

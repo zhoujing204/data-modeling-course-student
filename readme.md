@@ -47,6 +47,7 @@
    - vscode-icons
    - vscode-pdf
    - code spell checker
+   - Markdown Preview Mermaid Support
 
 7. 安装和配置版本控制工具git, 下载和安装地址: [https://git-scm.com/downloads](https://git-scm.com/downloads)
 
