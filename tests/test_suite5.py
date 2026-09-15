@@ -130,7 +130,6 @@ class TestSuite5(BaseTestSuite):
 
         except Exception as e:
             self._print_test_failure(test_name, e)
-
     def test_analyze_nap_sleep_duration(self, target):
         """测试习题5"""
         test_name = inspect.currentframe().f_code.co_name
@@ -176,11 +175,11 @@ class TestSuite5(BaseTestSuite):
             data_path = Path().resolve() / "data" / "ab_conversion_ztest.csv"
             result = target(data_path)
             expected = (
-                0.082,
-                0.09807692307692308,
-                0.016076923076923072,
-                2.8334907021995037,
-                0.004604264737460241,
+                0.15,
+                0.30,
+                0.15,
+                1.9674775073518587,
+                0.04912818652235691,
                 True,
             )
 
@@ -193,18 +192,29 @@ class TestSuite5(BaseTestSuite):
             assert bool(result[5]) is expected[5], "显著性判断错误"
 
             # 使用行顺序相反的模拟数据，确保学生根据variant列选择数据。
-            mock_csv = StringIO(
-                "variant,visitors,conversions\n"
-                "Personalized page,500,50\n"
-                "Original page,500,40\n"
+            mock_data = pd.DataFrame(
+                {
+                    "user_id": np.arange(100),
+                    "variant": (
+                        ["Personalized page"] * 50
+                        + ["Original page"] * 50
+                    ),
+                    "converted": (
+                        [1] * 10 + [0] * 40
+                        + [1] * 5 + [0] * 45
+                    ),
+                }
             )
+            mock_csv = StringIO()
+            mock_data.to_csv(mock_csv, index=False)
+            mock_csv.seek(0)
             mock_result = target(mock_csv)
             mock_expected = (
-                0.08,
                 0.10,
-                0.02,
-                1.10498924021966,
-                0.2691642514676925,
+                0.20,
+                0.10,
+                1.4002800840280096,
+                0.16142946236708322,
                 False,
             )
 
@@ -215,13 +225,127 @@ class TestSuite5(BaseTestSuite):
 
             # 验证alpha参数参与显著性判断。
             mock_csv.seek(0)
-            relaxed_alpha_result = target(mock_csv, alpha=0.30)
+            relaxed_alpha_result = target(mock_csv, alpha=0.20)
             assert bool(relaxed_alpha_result[5]) is True, "应使用传入的alpha判断显著性"
 
             self._test_no_loops(target)
             self.test_results[test_name] = 1
             print(colored(
                 f"习题6通过 {test_name} 测试。"
+                f"{sum(self.test_results.values())}/{len(self.test_results)}",
+                "green",
+            ))
+
+        except Exception as e:
+            self._print_test_failure(test_name, e)
+
+    def test_analyze_purchase_device_chi_square(self, target):
+        """测试习题7：卡方独立性检验"""
+        test_name = inspect.currentframe().f_code.co_name
+        self.test_results[test_name] = 0
+        self.test_targets[test_name] = target
+
+        try:
+            data_path = Path().resolve() / "data" / "purchase_by_device.csv"
+            result = target(data_path)
+
+            expected_observed = pd.DataFrame(
+                {
+                    "Yes": [8, 12, 3],
+                    "No": [32, 18, 27],
+                },
+                index=pd.Index(["Mobile", "Desktop", "Tablet"], name="device"),
+            )
+            expected_observed.columns.name = "purchased"
+            expected_frequency = pd.DataFrame(
+                [
+                    [9.2, 30.8],
+                    [6.9, 23.1],
+                    [6.9, 23.1],
+                ],
+                index=expected_observed.index,
+                columns=expected_observed.columns,
+            )
+
+            assert isinstance(result, tuple), "函数应返回tuple"
+            assert len(result) == 6, "应该返回6项数据"
+            observed, expected_df, chi2_stat, dof, p_value, is_significant = result
+
+            pd.testing.assert_frame_equal(
+                observed,
+                expected_observed,
+                check_dtype=False,
+            )
+            pd.testing.assert_frame_equal(
+                expected_df,
+                expected_frequency,
+                check_dtype=False,
+                rtol=1e-6,
+            )
+            assert chi2_stat == pytest.approx(7.961603613777527, rel=1e-6), \
+                "卡方统计量计算错误"
+            assert dof == 2, "自由度计算错误"
+            assert p_value == pytest.approx(0.018670663068231213, rel=1e-6), \
+                "p值计算错误"
+            assert isinstance(is_significant, (bool, np.bool_)), "是否显著应为布尔值"
+            assert bool(is_significant) is True, "显著性判断错误"
+
+            # 各设备购买率相同时，应不能拒绝独立性假设。
+            mock_data = pd.DataFrame(
+                {
+                    "user_id": np.arange(450),
+                    "device": (
+                        ["Tablet"] * 150
+                        + ["Mobile"] * 100
+                        + ["Desktop"] * 200
+                    ),
+                    "purchased": (
+                        ["Yes"] * 15 + ["No"] * 135
+                        + ["Yes"] * 10 + ["No"] * 90
+                        + ["Yes"] * 20 + ["No"] * 180
+                    ),
+                }
+            )
+            mock_csv = StringIO()
+            mock_data.to_csv(mock_csv, index=False)
+            mock_csv.seek(0)
+            mock_result = target(mock_csv)
+            mock_observed = pd.DataFrame(
+                {
+                    "Yes": [15, 10, 20],
+                    "No": [135, 90, 180],
+                },
+                index=pd.Index(["Tablet", "Mobile", "Desktop"], name="device"),
+            )
+            mock_observed.columns.name = "purchased"
+
+            pd.testing.assert_frame_equal(
+                mock_result[0],
+                mock_observed,
+                check_dtype=False,
+            )
+            pd.testing.assert_frame_equal(
+                mock_result[1],
+                mock_observed.astype(float),
+                check_dtype=False,
+                rtol=1e-6,
+            )
+            assert mock_result[2] == pytest.approx(0.0, abs=1e-12), \
+                "独立模拟数据的卡方统计量应为0"
+            assert mock_result[3] == 2, "模拟数据自由度计算错误"
+            assert mock_result[4] == pytest.approx(1.0, abs=1e-12), \
+                "独立模拟数据的p值应为1"
+            assert bool(mock_result[5]) is False, "模拟数据显著性判断错误"
+
+            # 验证alpha参数参与显著性判断。
+            strict_alpha_result = target(data_path, alpha=1e-20)
+            assert bool(strict_alpha_result[5]) is False, \
+                "应使用传入的alpha判断显著性"
+
+            self._test_no_loops(target)
+            self.test_results[test_name] = 1
+            print(colored(
+                f"习题7通过 {test_name} 测试。"
                 f"{sum(self.test_results.values())}/{len(self.test_results)}",
                 "green",
             ))
