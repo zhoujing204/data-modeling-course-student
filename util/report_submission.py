@@ -197,8 +197,8 @@ def submit_pdf_report(
         )
 
     print(
-        "报告提交成功: "
-        f"{receipt['submission_id']} (version {receipt.get('version', 'unknown')})"
+        "报告提交成功："
+        f"回执编号 {receipt['submission_id']}，版本 {receipt.get('version', '未知')}。"
     )
     if receipt.get("assessment_url"):
         # Run navigation in the notebook browser; the kernel may be remote.

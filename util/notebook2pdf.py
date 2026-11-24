@@ -4,9 +4,7 @@ import uuid
 import nbformat
 from nbconvert.exporters.webpdf import WebPDFExporter
 from traitlets.config import Config
-import time
-from tqdm import tqdm
-import threading
+from pathlib import Path
 from PyPDF2 import PdfReader, PdfWriter
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics
@@ -113,71 +111,59 @@ def add_header_footer(input_pdf_path, output_pdf_path, font_name="MyChineseFont"
 
 
 def convert_notebook_to_webpdf(notebook_path, output_pdf):
-    pbar = tqdm(total=100, desc='Notebook to PDF', unit='%')
+    """Return the completed PDF path, or raise without replacing an existing report.
 
-    progress = 0
-    max_progress = 95
-    duration = 15
-    tick = duration / max_progress
+    Rendering, header/footer stamping and validation all finish before the final
+    atomic rename. Callers can submit the returned file immediately on success.
+    """
+    temporary_paths = []
+    print("正在渲染报告并添加页眉页脚，请稍候……")
+    try:
+        if not notebook_path:
+            raise ValueError("未找到 Notebook 路径，请先保存文件并重新运行实验准备单元格。")
+        output_path = Path(output_pdf).expanduser().resolve()
+        if output_path.suffix.lower() != ".pdf":
+            raise ValueError("报告文件名必须以 .pdf 结尾。")
+        token = uuid.uuid4().hex
+        rendered_path = output_path.with_name(f".{output_path.name}.{token}.render.pdf")
+        stamped_path = output_path.with_name(f".{output_path.name}.{token}.footer.pdf")
+        temporary_paths = [rendered_path, stamped_path]
 
-    conversion_complete = threading.Event()
-    conversion_success = {"ok": False}
+        with open(notebook_path, "r", encoding="utf-8") as source:
+            notebook = nbformat.read(source, as_version=4)
+        nbformat.validate(notebook)
+        config = Config()
+        config.WebPDFExporter.allow_chromium_download = True
+        config.WebPDFExporter.wait_until = "domcontentloaded"
+        config.WebPDFExporter.timeout = 180000
+        config.WebPDFExporter.script = """
+        () => new Promise(resolve => setTimeout(resolve, 3000))
+        """
+        pdf_data, _ = WebPDFExporter(config=config).from_notebook_node(notebook)
+        if not PdfReader(BytesIO(pdf_data)).pages:
+            raise ValueError("转换结果没有页面，未生成可提交的 PDF。")
 
-    def convert():
-        try:
-            with open(notebook_path, "r", encoding="utf-8") as f:
-                nb = nbformat.read(f, as_version=4)
+        with rendered_path.open("wb") as report:
+            report.write(pdf_data)
+            report.flush()
+            os.fsync(report.fileno())
+        add_header_footer(str(rendered_path), str(stamped_path))
+        with rendered_path.open("rb") as report:
+            page_count = len(PdfReader(report).pages)
+        if not page_count:
+            raise ValueError("页眉页脚处理后没有有效页面。")
+        size_kb = rendered_path.stat().st_size / 1024
+        os.replace(rendered_path, output_path)
+    except Exception as error:
+        print(f"PDF 报告生成失败，已停止后续提交。原因：{error}")
+        raise RuntimeError("PDF 报告生成失败；本次未提交到 LabDrop。") from error
+    finally:
+        for temporary_path in temporary_paths:
+            temporary_path.unlink(missing_ok=True)
 
-            c = Config()
-            c.WebPDFExporter.allow_chromium_download = True
-
-            # ✅ 核心修复（避免 networkidle 超时）
-            c.WebPDFExporter.wait_until = "domcontentloaded"
-            c.WebPDFExporter.timeout = 180000
-
-            # ✅ 给 JS 渲染留时间（解决 plotly 等）
-            c.WebPDFExporter.script = """
-            () => new Promise(resolve => setTimeout(resolve, 3000))
-            """
-
-            exporter = WebPDFExporter(config=c)
-            pdf_data, _ = exporter.from_notebook_node(nb)
-
-            with open(output_pdf, "wb") as fout:
-                fout.write(pdf_data)
-
-            conversion_success["ok"] = True
-
-        except Exception as e:
-            print(f"Conversion error: {e}")
-
-        finally:
-            conversion_complete.set()
-
-    threading.Thread(target=convert, daemon=True).start()
-
-    while progress < max_progress and not conversion_complete.is_set():
-        time.sleep(tick)
-        progress += 1
-        pbar.update(1)
-
-    while not conversion_complete.is_set():
-        time.sleep(0.2)
-
-    if pbar.n < 100:
-        pbar.update(100 - pbar.n)
-    pbar.close()
-
-    if conversion_success["ok"] and os.path.exists(output_pdf):
-        output_path = os.path.abspath(output_pdf)
-        temporary_pdf = os.path.join(
-            os.path.dirname(output_path),
-            f".{os.path.basename(output_path)}.{uuid.uuid4().hex}.tmp.pdf",
-        )
-        add_header_footer(output_path, temporary_pdf)
-        print(f"\n成功生成报告文件: {output_pdf}")
-    else:
-        print(f"\n转换失败: {notebook_path}")
+    print(f"PDF 报告生成成功：{page_count} 页，{size_kb:.1f} KB。")
+    print(f"本地文件：{output_path}")
+    return output_path
 
 
 if __name__ == "__main__":
