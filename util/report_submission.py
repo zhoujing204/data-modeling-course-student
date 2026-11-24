@@ -11,9 +11,11 @@ from typing import Any, Mapping
 import requests
 
 try:
+    from .assessment_navigation import open_assessment_after_upload
     from .server_health import DEFAULT_CONFIG_PATH, _load_server_url
     from .notebook_info_extractor import is_valid_email, normalize_email
 except ImportError:  # Support importing after adding ``util`` to sys.path.
+    from assessment_navigation import open_assessment_after_upload
     from server_health import DEFAULT_CONFIG_PATH, _load_server_url
     from notebook_info_extractor import is_valid_email, normalize_email
 
@@ -198,4 +200,18 @@ def submit_pdf_report(
         "报告提交成功: "
         f"{receipt['submission_id']} (version {receipt.get('version', 'unknown')})"
     )
+    if receipt.get("assessment_url"):
+        # Run navigation in the notebook browser; the kernel may be remote.
+        # A blocked popup or unavailable display must never invalidate the PDF receipt.
+        try:
+            from IPython.display import HTML, display
+            navigation = open_assessment_after_upload(
+                response, trusted_origin=server_url,
+                display_html=lambda html: display(HTML(html)),
+                open_browser=lambda url: False, remote_kernel=True,
+            )
+            if navigation["fallback_url"]:
+                print("在线答题: " + navigation["fallback_url"])
+        except Exception:
+            print("报告已提交；可稍后从LabDrop打开在线答题页面。")
     return receipt
